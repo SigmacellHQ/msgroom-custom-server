@@ -120,7 +120,7 @@ input[type="text"] {
     height: 24px;
     padding: 4px;
     color:black;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
 }
 
 .w96_sm_item:hover {
@@ -163,7 +163,7 @@ input[type="text"] {
     /* width: fit-content; */
     width: 70px;
     display: inline-block;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     user-select: none;
 }
 
@@ -373,7 +373,7 @@ input[type="text"] {
 }
 
 .titlebar-maxbutton {
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     position: relative;
     /* top: -1px; */
     left: 1px;
@@ -389,7 +389,7 @@ input[type="text"] {
 }
 
 .titlebar-minbutton {
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     position: relative;
     /* top: -1px; */
     left: 1px;
@@ -464,7 +464,7 @@ input[type="text"] {
     user-select: none;
     -moz-user-modify: none;
     -ms-user-select: none;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     margin-right: 2px;
     vertical-align: top;
     height: calc(100% - 2px);
@@ -530,7 +530,7 @@ input[type="text"] {
     /* width: fit-content; */
     width: 70px;
     display: inline-block;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     user-select: none;
 }
 
@@ -586,7 +586,7 @@ input[type="text"] {
 }
 
 .w96-checkmark {
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     display: inline-block;
     height: 10px;
     border-width: 2px;
@@ -624,7 +624,7 @@ input[type="text"] {
     border-width: 1px;
     padding-left: 10px;
     padding-right: 10px;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     border-bottom-color: black;
     border-right-color: black;
     border-top-color: white;
@@ -682,7 +682,7 @@ input[type="text"] {
 }
 
 .w96-tab-button {
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
     border-style: outset;
     background-color: transparent;
     border-top-left-radius: 3px;
@@ -804,7 +804,7 @@ input[type="text"] {
     padding-top: 2px;
     padding-bottom: 2px;
     padding-right: 32px;
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
 }
 
 .menu-basic .menu-basic-options .menu-basic-option:hover {
@@ -902,7 +902,7 @@ input[type="text"] {
 }
 
 .movable {
-    cursor: url(../cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/cursors/hand.cur) 6 0, auto;
 }
 
 .dm-griditem:focus {
@@ -1016,7 +1016,7 @@ input[type="text"] {
     -moz-user-select: none;
     -ms-user-select: none;
     -webkit-user-select: none;
-    cursor: url(../system36/resources/cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/system36/resources/cursors/hand.cur) 6 0, auto;
 }
 
 .menuitem-root-active {
@@ -1204,7 +1204,7 @@ input[type="text"] {
 .a96-volscroll .ui-slider-handle {
     width: 12px;
     box-shadow: inset 1px 1px #dfdfdf, 1px 0 #000, 0 1px #000, 1px 1px #000;
-    cursor: url(../system36/resources/cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/system36/resources/cursors/hand.cur) 6 0, auto;
     background-color: rgb(192,192,192);
     border-radius: 0px;
 }
@@ -1366,7 +1366,7 @@ input[type="text"] {
     border-width: 2px;
     border-top-color: rgb(128,128,128);
     border-left-color: rgb(128,128,128);
-    cursor: url(../system36/resources/cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/system36/resources/cursors/hand.cur) 6 0, auto;
     margin-top: auto;
     margin-bottom: auto;
 }
@@ -1518,7 +1518,7 @@ input[type="text"] {
 .conjs-longstr:hover {
     background-color: aqua;
     color: black;
-    cursor: url(../system36/resources/cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/system36/resources/cursors/hand.cur) 6 0, auto;
 }
 
 .conjs-link {
@@ -1530,7 +1530,7 @@ input[type="text"] {
 .conjs-link:hover {
     background-color: greenyellow;
     color: black;
-    cursor: url(../system36/resources/cursors/hand.cur) 6 0, auto;
+    cursor: url(https://msgroom.windows96.net/system36/resources/cursors/hand.cur) 6 0, auto;
 }
 
 .active-desktop {
