@@ -1,0 +1,56 @@
+/*  copyright windows 96 team 2020
+    fonts copyright to their respective owners
+    also i really need to convert EVERYTHING to woff
+*/
+
+@font-face {
+    font-family: "px_sans_serif";
+    src: url("/fonts/ms_sans_serif.woff") format("woff");
+    src: url("/fonts/ms_sans_serif.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: "px_sans_serif";
+    src: url("/fonts/ms_sans_serif_bold.woff") format("woff");
+    src: url("/fonts/ms_sans_serif_bold.woff2") format("woff2");
+    font-weight: bold;
+    font-style: normal;
+  }
+
+@font-face {
+    font-family: "pixarial";
+    src: url("/fonts/pixarial.woff") format("woff");
+}
+
+@font-face {
+    font-family: "pixverdana";
+    src: url("/fonts/pixverdana.woff") format("woff");
+}
+
+@font-face {
+    font-family: "npxsans";
+    src: url("/fonts/npxsans.ttf");
+}
+
+@font-face {
+    font-family: "nouveaux";
+    src: url("/fonts/px_sans_nouveaux.woff") format("woff");
+}
+
+@font-face {
+    font-family: "freepix";
+    src: url("/fonts/freepixel.eot");
+    src: url("/fonts/freepixel.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/freepixel.otf") format("opentype"),
+    url("/fonts/freepixel.svg") format("svg"),
+    url("/fonts/freepixel.ttf") format("truetype"),
+    url("/fonts/freepixel.woff") format("woff"),
+    url("/fonts/freepixel.woff2") format("woff2");
+}
+
+/*@font-face {
+    font-family: "ka1";
+    src: url("/fonts/ka1.ttf") format("ttf");
+}*/

@@ -1,0 +1,982 @@
+/*  copyright windows 96 team 2020  */
+
+#convga {
+    line-height: 1.9em;
+}
+
+html {
+    cursor: url(../cursors/default.png), auto;
+}
+
+.mgfx-main {
+    height: 100vh;
+    width: 100vw;
+    background: black;
+}
+
+.user-desktop {
+    height: 100%;
+    width: 100%;
+    background-position: center;
+    box-sizing: border-box;
+    user-select: none;
+    position: fixed;
+    background-size: auto;
+    outline: 0;
+}
+
+.user-taskbar {
+    height: 28px;
+    width: 100%;
+    z-index: 10000000;
+    box-sizing: border-box;
+    background: rgb(192,192,192);
+    border-style: ridge;
+    border-top-color: white;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    display: flex;
+    max-height: 28px;
+    flex-direction: row-reverse;
+    position: fixed;
+    bottom: 0;
+}
+
+.start-menu {
+    animation-duration: 0.25s !important;
+    z-index: 9999999;
+}
+
+.dev-zoom125x {
+    zoom: 1.25;
+}
+
+.w96-footer {
+    padding: 3px;
+    border-style: inset;
+    border-width: 1px;
+    font-family: nouveaux;
+    font-size: 8px;
+}
+
+.exp-file-view {
+    border-style: inset;
+    border-width: 1px;
+    box-sizing: border-box;
+    background-color: white;
+    /* overflow: auto; */
+    position: relative;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
+    overflow: auto;
+    display: flex;
+    margin-bottom: 3px;
+    margin-top: 3px;
+    flex: 1;
+}
+
+.exp-file-view .icon-text {
+    color: black;
+    text-shadow: none;
+}
+
+.exp-file-view>.shell-icon {
+    position: absolute;
+}
+
+.exp-file-view>.shell-icon.selected>.icon-text {
+    color: white;
+    text-shadow: none;
+}
+
+.exp-file-view>.shell-icon.inactive>.icon-image {
+    filter: brightness(0.7) contrast(0.9);
+}
+
+.exp-file-view>.shell-icon.inactive>.icon-text {
+    background: rgb(177 177 177);
+}
+
+.wexplorer-app>.nav-bar {
+    display: flex;
+}
+
+.wexplorer-app>.nav-bar>.nav {
+    width: 100%;
+    flex: 1;
+    font-family: nouveaux;
+    font-size: 8px;
+    outline: 0;
+    box-sizing: border-box;
+    border: inset;
+    border-width: 1px;
+    line-height: 1em;
+    padding-left: 5px;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.wexplorer-app>.nav-bar>.w96-button {
+    background-position: center;
+    height: 22px;
+    width: 22px;
+}
+
+.wexplorer-app>.nav-bar>.up {
+    background-image: url(../app/explorer/up.png);
+    margin-left: 1px;
+}
+
+.wexplorer-app>.nav-bar>.go {
+    background-image: url(../app/explorer/go.png);
+    margin-right: 1px;
+}
+
+.wcontext-menu {
+    background: #C0C0C0;
+    border-style: outset;
+    border-width: 1px;
+    font-family: nouveaux;
+    font-size: 8px;
+    display: inline-block;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    min-width: 130px;
+    max-width: 225px;
+}
+
+.wcontext-menu>.item {
+    color: black;
+    padding: 5px;
+    line-height: 1.3;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.wcontext-menu>.item:hover {
+    color: white;
+    background: rgb(0, 0, 128);
+}
+
+.wcontext-menu>.item.selected {
+    color: white;
+    background: rgb(0, 0, 128);
+}
+
+.wcontext-menu.mbar>.item {
+    padding-right: 32px;
+    padding-left: 32px;
+}
+
+.wcontext-menu.mbar>.item.hs {
+    padding-left: 32px !important;
+}
+
+.wcontext-menu>.item.hs {
+    padding-right: 15px;
+}
+
+.wcontext-menu>.item.hs::after {
+    content: ' >';
+    text-align: right;
+    right: 6px;
+    /*bottom: 5px;*/
+    position: absolute;
+    text-shadow: -1px 0px black;
+}
+
+.wcontext-menu>.item.wi {
+    padding-left: 22px;
+    background-position-x: 3px;
+    background-position-y: 2px;
+    background-repeat: no-repeat;
+}
+
+.wcontext-menu>.separator {
+    border: inset;
+    border-width: 1px;
+}
+
+.w96_sm_item.selected {
+    background: rgb(0, 0, 128);
+    color: white;
+}
+
+#item_programs::after {
+    content: ' >';
+    font-family: nouveaux;
+    font-size: 8px;
+    right: 8px;
+    text-shadow: -1px 0 0 black;
+    position: fixed;
+    margin-top: 7px;
+}
+
+.prompt-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    padding: 10px;
+    box-sizing: border-box;
+    flex-direction: column;
+}
+
+.prompt-container>.message {
+    flex: 1;
+}
+
+.prompt-container>.buttons {
+    display: flex;
+    justify-content: center;
+    padding: 5px;
+    padding-top: 10px;
+    padding-bottom: 0px;
+}
+
+.prompt-container>.buttons>button {
+    margin-right: 5px;
+    min-width: 65px;
+}
+
+.w96-textbox {
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    box-shadow: inset 1px 1px grey, 1px 0 #fff, 0 1px #fff, 1px 1px #fff;
+    background-color: white;
+    /* font-family: windows; */
+    font-family: nouveaux;
+    font-size: 8px;
+    padding: 2px;
+    cursor: url(../cursors/i-beam.png) 4 9, auto;
+    line-height: 1em;
+}
+
+.w96-textbox:focus {
+    outline: 0;
+}
+
+.w96-menubar {
+    width: 100%;
+    height: fit-content;
+    color: black;
+    line-height: 1em;
+}
+
+.w96-menubar>.root-item {
+    font-family: nouveaux;
+    font-size: 8px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 2px;
+    padding-top: 2px;
+    display: inline-block;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    cursor: url(../cursors/hand.cur) 6 0, auto;
+}
+
+.w96-menubar>.root-item:hover {
+    background-color: rgb(0, 0, 128);
+    color: white;
+}
+
+.w96-menubar>.root-item.selected {
+    background-color: rgb(0, 0, 128);
+    color: white;
+}
+
+.textpad-app>.main-editor {
+    outline: 0;
+    font-family: monospace;
+    font-size: 11px;
+    flex: 1;
+    border-width: 1px;
+    border-style: inset;
+    resize: none;
+    border-top: 1px solid #bdbdbd;
+    border-left: 1px solid #bdbdbd;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    box-shadow: inset 1px 1px grey, 1px 0 #fff, 0 1px #fff, 1px 1px #fff;
+    margin-bottom: 3px;
+}
+
+.mdview-container {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    background: white;
+    font-family: sans-serif;
+    font-size: 11px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.cdlg-ofd>.bp {
+    display: flex;
+    flex-direction: column;
+}
+
+.cdlg-ofd>.bp>.buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.cdlg-ofd>.bp>.input-area {
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+
+.cdlg-ofd>.bp>.input-area>input {
+    flex: 1;
+}
+
+.cdlg-ofd>.bp>.input-area>span {
+    font-family: nouveaux;
+    font-size: 8px;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 5px;
+}
+
+.cdlg-ofd>.bp>.buttons>button {
+    margin-left: 10px;
+    min-width: 65px;
+}
+
+.window-html-content>.mbox {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.window-html-content>.mbox>.content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.window-html-content>.mbox>.content>.icon {
+    height: 32px;
+    width: 32px;
+    min-width: 32px;
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.window-html-content>.mbox>.content>.text {
+    width: 100%;
+    margin-right: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    font-family: nouveaux;
+    font-size: 8px;
+}
+
+.window-html-content>.mbox>.content>.icon.warning {
+    background-image: url(../themes/default/icons/warning.png);
+}
+
+.window-html-content>.mbox>.content>.icon.error {
+    background-image: url(../themes/default/icons/error.png);
+}
+
+.window-html-content>.mbox>.content>.icon.info {
+    background-image: url(../themes/default/icons/info.png);
+}
+
+.window-html-content>.mbox>.content>.icon.question {
+    background-image: url(../themes/default/icons/question.png);
+}
+
+.window-html-content>.mbox>.content>.icon.effects {
+    background-image: url(../themes/default/icons/apps/effects.png);
+}
+
+.window-html-content>.mbox>.buttons {
+    text-align: center;
+}
+
+.window-html-content>.mbox>.buttons>button {
+    min-width: 65px;
+    margin-left: 5px;
+}
+
+.w96-select {
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    box-shadow: inset 1px 1px grey, 1px 0 #fff, 0 1px #fff, 1px 1px #fff;
+}
+
+/* fx classes */
+
+@keyframes fx-hue {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+
+    100% {
+        filter: hue-rotate(360deg);
+    }
+}
+
+@keyframes fx-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fx-zoom {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(2);
+    }
+}
+
+.fx-zoom {
+    animation-direction: alternate;
+    animation-name: fx-zoom;
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+    animation-play-state: running;
+    animation-iteration-count: infinite;
+}
+
+.fx-hue {
+    animation: fx-hue 1s linear infinite;
+}
+
+.fx-spin {
+    animation: fx-spin 7s linear infinite;
+}
+
+.fx-upside-down {
+    transform: rotate(180deg);
+    transition: transform 0.5s;
+}
+
+.fx-deepfryer {
+    filter: saturate(1e+10);
+}
+
+.fx-grayscale {
+    filter: grayscale(1);
+}
+
+.fx-invert {
+    filter: invert(1);
+}
+
+.fx-blur {
+    filter: blur(2px);
+}
+
+.fx-desk-overlay {
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: -100;
+    pointer-events: none;
+    background: linear-gradient(217deg, rgba(255,0,0,.8), rgba(255,0,0, 0.1) 70.71%), linear-gradient(127deg, rgba(0,255,0,.8), rgba(0,255,0,0) 70.71%), linear-gradient(336deg, rgba(0,0,255,.8), rgba(0,0,255,0) 70.71%);
+    filter: contrast(1.5);
+}
+
+.imgviewer-app {
+    background-image: url(../app/iviewer/checker.png);
+}
+
+.imgviewer-app>.controls {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.imgviewer-app>.controls>button {
+    height: 22px;
+    width: 22px;
+    padding: 0px;
+    background-color: silver;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.imgviewer-app>.controls>button.center {
+    background-image: url(../app/iviewer/center-image.png);
+}
+
+.imgviewer-app>.controls>button.zoom {
+    background-image: url(../app/iviewer/zoom-image.png);
+}
+
+.imgviewer-app>.image-container {
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.imgviewer-app>.image-container.centered {
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: auto !important;
+}
+
+.window-dlg.dragging {
+    background: transparent;
+    border-style: dotted;
+    box-shadow: none;
+    border-color: black;
+    border-width: 2px;
+}
+
+.window-dlg.dragging>* {
+    display: none;
+}
+
+.winsnap-panel {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    height: calc(100vh - 44px);
+    width: calc(50vw - 15px);
+    border-style: dotted;
+    border-width: 2px;
+    border-color: black;
+    background: rgba(0,0,0,0.1);
+    pointer-events: none;
+    z-index: 100000;
+}
+
+.winsnap-panel.left {
+    left: 5px;
+    right: auto;
+}
+
+.winsnap-panel.top {
+    position: fixed;
+    top: 5px;
+    height: calc(100vh - 44px);
+    width: calc(100vw - 14px);
+    left: 5px;
+    right: auto;
+}
+
+.anim-null {
+    animation-name: anim-null;
+    animation-duration: 3ms;
+}
+
+@keyframes anim-null {
+    0% {
+        display: none;
+    }
+
+    100% {
+        display: none;
+    }
+}
+
+.w96-progressbar {
+    width: 100%;
+    height: 18px;
+    padding: 1px;
+    box-sizing: border-box;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    box-shadow: inset 1px 1px grey, 1px 0 #fff, 0 1px #fff, 1px 1px #fff;
+}
+
+.w96-progressbar>.progress {
+    height: 100%;
+    width: 10%;
+    background: rgb(0, 0, 128);
+    display: inline-block;
+    margin-left: 0px;
+    animation-name: progress-idle;
+    animation-duration: 1s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+@keyframes progress-idle {
+    0% {
+        margin-left: 0px;
+    }
+
+    100% {
+        margin-left: calc(100% - 10%);
+    }
+}
+
+.nes-app>iframe {
+    border-style: none;
+    height: 100%;
+    width: 100%;
+}
+
+.uploader-app {
+    font-family: nouveaux;
+    font-size: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+}
+
+.uploader-app>input[type="file"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.uploader-app>.start {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dosbox-app>iframe {
+    border-style: none;
+    height: 100%;
+    width: 100%;
+}
+
+.w96-tab-control {
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    min-width: 100px;
+}
+
+.w96-tab-control>.pages {
+    padding: 0px;
+    margin-left: 8px;
+    line-height: 1em;
+    margin-top: 5px;
+    margin-right: 5px;
+    font-size: 0px;
+}
+
+.w96-tab-control>.pages>button:not(.active) {
+    top: 2px;
+    height: calc(100% - 1px);
+}
+
+.w96-tab-control>.pages>button {
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+    box-shadow: inset 1px 1px #dfdfdf, 1px 0 #000, 0 1px transparent, 1px 1px #000;
+    /* margin-left: 4px; */
+    margin-bottom: 0px;
+    margin-right: 1px;
+    padding: 4px;
+    font-size: 8px;
+    font-family: nouveaux;
+    background: transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+    top: 1px;
+    z-index: -1;
+    outline: 0;
+}
+
+.w96-tab-control>.pages>button.active {
+    border-bottom-color: transparent !important;
+    z-index: 1;
+}
+
+.w96-tab-control>.pages>button.active::after {
+    content: ' ';
+    position: absolute;
+    background: rgb(192,192,192);
+    height: 2px;
+    left: -1px;
+    width: calc(100% - 1px);
+    bottom: -2px;
+    z-index: 10;
+    border-left-style: solid;
+    border-left-color: white;
+    border-left-width: 2px;
+    border-right-style: solid;
+    border-right-color: white;
+    border-right-width: 2px;
+}
+
+.w96-tab-control>.content {
+    flex: 1;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+    box-shadow: inset 1px 1px #dfdfdf, 1px 0 #000, 0 1px #000, 1px 1px #000;
+    margin: 5px;
+    margin-top: 0px;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+.wasmtools-app .readonly-tbox {
+    font-family: nouveaux;
+    font-size: 8px;
+    padding: 3px;
+    background: white;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+    line-height: 1.1em;
+    box-sizing: border-box;
+}
+
+.wasmtools-app .readonly-tbox .line {
+    display: block;
+    width: 100%;
+    line-height: 2.2em;
+}
+
+.jslinux-app>iframe {
+    height: 100%;
+    width: 100%;
+    border-style: none;
+}
+
+.terminal-app>.term {
+    box-sizing: border-box;
+    padding: 5px;
+    background-color: black;
+    color: greenyellow;
+    height: 100%;
+    width: 100%;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    word-break: break-word;
+    user-select: text;
+}
+
+.terminal-app>.term>.content {
+    font-size: 12px;
+    font-family: monospace;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.terminal-app>.term>.prompt {
+    display: flex;
+    font-size: 12px;
+    font-family: monospace;
+    line-height: 0.9;
+}
+
+.terminal-app>.term>.prompt>.prefix {
+    position: relative;
+    top: 2px;
+    margin-right: 7px;
+    color: cyan;
+    caret-color: white !important;
+}
+
+.terminal-app>.term>.prompt>input[type="text"] {
+    border: 0px none;
+    background: transparent;
+    color: greenyellow;
+    outline: 0px none;
+    font-family: monospace;
+    line-height: 0px;
+    width: 100%;
+    flex: 1;
+    font-size: 12px;
+    padding: 0px;
+    cursor: url(../system36/resources/cursors/i-beam.png) 4 8, auto;
+}
+
+.logon-app>.logo {
+    height: 93px;
+    width: 100%;
+    background-image: url(../ui/logon/logon.png);
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.logon-app>.content {
+    padding: 10px;
+    padding-top: 15px;
+    font-family: nouveaux;
+    font-size: 8px;
+}
+
+.logon-app>.content>.field {
+    display: flex;
+    box-sizing: border-box;
+}
+
+.logon-app>.content>.field>span {
+    line-height: 2.4em;
+    padding-right: 10px;
+    min-width: 54px;
+}
+
+.logon-app>.content>.field>.w96-textbox {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 54px;
+}
+
+.logon-app>.content>.field.pwd {
+    padding-top: 10px;
+}
+
+.logon-app>.content>.field>input[type="password"] {
+    letter-spacing: 2px;
+}
+
+.w96-textbox.disabled {
+    background-color: lightgray;
+}
+
+.logon-app>.buttons {
+    padding-top: 7px;
+    padding-bottom: 10px;
+    padding-left: 74px;
+    padding-right: 10px;
+    display: flex;
+    height: 100%;
+    flex: 1;
+}
+
+.logon-app>.buttons>button {
+    min-width: 80px;
+    height: 21px;
+}
+
+.wexplorer-app-propdlg {
+    flex-direction: row;
+}
+
+.wexplorer-app-propdlg .dlg-ok-btn {
+    width: 65px;
+    right: 11px;
+    position: absolute;
+    margin-top: 10px;
+}
+
+.wexplorer-app-propdlg>.p1 {
+    padding: 10px;
+}
+
+.wexplorer-app-propdlg>.p1>.icon {
+    height: 32px;
+    width: 32px;
+}
+
+.wexplorer-app-propdlg>.p2 {
+    padding: 10px;
+    box-sizing: border-box;
+    font-family: nouveaux;
+    font-size: 8px;
+    flex: 1;
+}
+
+.wexplorer-app-propdlg>.p2>.field {
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.wexplorer-app-propdlg>.p2>.field>span {
+    display: block;
+    line-height: 2.7;
+    margin-right: 10px;
+    min-width: 65px;
+}
+
+.wexplorer-app-propdlg>.p2>.field>input {
+    width: 100%;
+    background: lightgray;
+    color: gray;
+}
+
+.settings-app {
+    font-size: 8px;
+    font-family: nouveaux;
+}
+
+.security-app .sec-indented-options {
+    padding-left: 20px;
+    box-sizing: border-box;
+}
+
+.w96-link-hv {
+    cursor: url(../cursors/hand.cur) 6 0, auto;
+}
+
+.w96-link-hv:hover {
+    text-decoration: underline;
+}
+
+.wiki96-app>iframe {
+    border-style: none;
+    height: 100%;
+    width: 100%;
+}
+
+.meme-man {
+    background-image: url(/system/resource/app/meme-man/meme-man-front.png);
+    height: 180px;
+    width: 180px;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.win96chat-app>iframe {
+    height: 100%;
+    width: 100%;
+    border: none;
+}

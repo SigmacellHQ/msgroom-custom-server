@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" value="application/xhtml+xml;charset=utf-8" />
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
+        <meta property="og:url" content="https://msgroom.windows96.net" />
+        <meta property="og:title" content="MIKESOFT MESSAGE ROOM" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="MsgRoom" />
+        <meta property="og:image" content="img/icon/favicon-large.png" />
+        <meta property="og:description" content="The official Windows 96 chat room as featured on the site!" />
+        <title>MsgRoom - Windows 96 Chat</title>
+        <link rel="stylesheet" href="https://msgroom.windows96.net/css/font36.css">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/shell36.css">
+        <link rel="stylesheet" href="css/ua-chrome.css">
+        <link rel="stylesheet" href="css/chat.css">
+        <link rel="stylesheet" href="css/mobile.css">
+        <!-- <script src="https://msgroom.windows96.net/socket.io/socket.io.js"></script> -->
+        <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+        <script src="main.js"></script>
+        <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+        <link rel="shortcut icon" href="img/icon/favicon-large.png">
+        <link rel="apple-touch-icon" href="img/icon/favicon-large.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <style>
+        .members>.list>.member>.tag{
+            margin-right: 0;
+        }
+        .message>.sig>.tag{
+            margin-left: -3px;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <div class="separator"></div>
+            <div class="messages">
+                <div class="message">
+                    <div class="sig">
+                        <span class="time">10:03 PM</span>
+                        <span class="author" style="background-color: rgb(156, 39, 176);">Floppeur</span>
+                        <span class="tag staff">staff</span>
+                    </div>
+                    <div class="content" style="color: rgb(156, 39, 176);">.</div>
+                </div>
+            </div>
+            <div class="user-input">
+                <span class="nickname">Unknown</span>
+                <input type="text" class="message-box w96-textbox">
+                <button class="w96-button send">Send</button>
+            </div>
+        </div>
+
+        <div class="members">
+            <span class="title bold-noaa">Online Members</span>
+            <div class="list">
+                <div class="member" uid="ID-0" style="color: rgb(156, 39, 176);">
+                    <span class="tag staff">staff</span>
+                    Floppeur
+                </div>
+                <div style="position: fixed;bottom: 0;margin: 10px;right: 0;">
+                    <a href="#" onclick='if(confirm("This will make you disconnect. Are you sure?")) {window.location = "/credits.html";}'>
+                        <p>Credits</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mob-tab-btns"></div>
+
+        <script>
+        // app.call(window);
+        const socket = io("ws://km72w2hp-3030.uks1.devtunnels.ms/");
+        socket.emit("message", "world", (response) => {
+            console.log(response); // "got it"
+        });
+        </script>
+    </body>
+</html>

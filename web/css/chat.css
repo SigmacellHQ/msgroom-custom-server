@@ -1,0 +1,307 @@
+html, head, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+    background-color: gainsboro;
+    overflow: hidden;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 8px;
+    font-family: nouveaux;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.main>.messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.message {
+    line-height: 1.7;
+    width: 100%;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+}
+
+.message:hover {
+    background-color: rgb(205, 205, 205);
+}
+
+.message>.sig {
+    width: 166px;
+    text-align: right;
+    position: relative;
+    left: -20px;
+    line-height: 1.9;
+}
+
+.message>.sig>.author {
+    background: gray;
+    color: white;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.message>.sig>.tag {
+    background: rgb(0, 0, 128);
+    color: white;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.message>.sig>.time {
+    padding-right: 5px;
+}
+
+.message>.content {
+    word-break: break-word;
+}
+
+.message>.content a {
+    color: royalblue;
+}
+
+.message>.content>img {
+    max-width: 100%;
+}
+
+.message.system.info>.sig>.author {
+    background: rgb(0, 0, 128);
+}
+
+.message.system.info>.content {
+    color: rgb(0, 0, 128);
+    /*text-shadow: 1px 0  rgb(0, 0, 128);*/
+}
+
+.message.system.error>.sig>.author {
+    background: rgb(128, 0, 0);
+}
+
+.message.system.error>.content {
+    color: rgb(128, 0, 0);
+    /*text-shadow: 1px 0  rgb(0, 0, 128);*/
+}
+
+.message.system.success>.sig>.author {
+    background: rgb(0, 128, 0);
+}
+
+.message.system.success>.content {
+    color: rgb(0, 128, 0);
+    /*text-shadow: 1px 0  rgb(0, 0, 128);*/
+}
+
+.message>.content {
+    flex: 1;
+    width: 100%;
+    white-space: pre-wrap;
+}
+
+.user-input {
+    padding: 10px;
+    padding-left: 5px;
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: 0px;
+    border-top-width: 1px;
+    border-color: darkgray;
+    background: gainsboro;
+    display: flex;
+    flex-direction: row;
+}
+
+.user-input>.nickname {
+    padding: 5px;
+}
+
+.user-input>.nickname:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.user-input>.message-box {
+    resize: none;
+    width: 100%;
+    height: 2.6em;
+    box-sizing: border-box;
+    font-family: nouveaux;
+    flex: 1;
+}
+
+.user-input>.send {
+    margin-left: 5px;
+}
+
+.members {
+    width: 145px;
+    font-family: nouveaux;
+    font-size: 8px;
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: 0px;
+    border-left-width: 1px;
+    border-color: darkgray;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.members>.title {
+    padding: 10px;
+    display: block;
+    width: 100%;
+    border-style: solid;
+    border-width: 0px;
+    border-bottom-width: 1px;
+    border-color: darkgray;
+    margin-bottom: 5px;
+}
+
+.members>.list {
+    flex: 1;
+}
+
+.members>.list>.member {
+    line-height: 2;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 5px;
+}
+
+.separator {
+    height: 100%;
+    width: 1px;
+    position: absolute;
+    background-color: darkgray;
+    z-index: -1;
+    pointer-events: none;
+    top: 0px;
+    left: 166px;
+}
+
+.cmd-box {
+    position: fixed;
+    bottom: 0;
+    background: gainsboro;
+    box-shadow: inset 1px 1px #dfdfdf, 1px 0 black, 0 1px black, 1px 1px black;
+    border-top: 1px solid white;
+    border-left: 1px solid white;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+    font-family: nouveaux;
+    font-size: 8px;
+    line-height: 2;
+}
+
+.cmd-box>.item {
+    padding: 5px;
+    max-width: 300px;
+}
+
+.cmd-box>.item>.title {
+    width: 100%;
+    display: block;
+}
+
+.cmd-box>.item>.desc {
+    width: 100%;
+    display: block;
+}
+
+.cmd-box>.item:hover {
+    color: white;
+    background: rgb(0, 0, 128);
+    cursor: pointer;
+}
+
+.cmd-box>.item.selected {
+    color: white;
+    background: rgb(0, 0, 128);
+}
+
+.emoji {
+    height: 16px;
+    width: 16px;
+    vertical-align: middle;
+}
+
+.members>.list>.member>.tag {
+    background: rgb(0, 0, 128);
+    color: white;
+    margin-right: 0.5em;
+    padding: 1px 4px;
+    box-sizing: border-box;
+}
+
+body:not(.allow-images) img:not(.emoji) {
+    display: none;
+}
+
+code {
+    font-size: 1.4em;
+    font-weight: normal !important;
+    text-shadow: none;
+}
+
+.code-block {
+    padding: 5px;
+    box-sizing: border-box;
+    font-family: monospace;
+    white-space: pre-line;
+    font-size: 12px;
+    background-color: rgb(200, 200, 200);
+}
+
+/* context menus */
+.ctx-menu {
+    position: absolute;
+    font-family: 'nouveaux';
+    font-size: 8px;
+    background-color: rgb(192,192,192);
+    line-height: 1.5;
+    box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+    padding: 2px;
+}
+
+.ctx-menu>.item {
+    color: #000;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding-right: 32px;
+    padding-left: 24px;
+    padding-top: 1px;
+    line-height: 1rem;
+}
+
+.ctx-menu>.item:hover {
+    background-color: rgb(0, 0, 128);
+    color: white;
+}
+
+.ctx-menu>.sep {
+    border-width: 1px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: 1px solid #9a9a9a;
+    border-top: 1px solid #9a9a9a;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}

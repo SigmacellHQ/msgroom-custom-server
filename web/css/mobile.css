@@ -1,0 +1,99 @@
+/* mobile tab buttons should be hidden in most circumstances */
+.mob-tab-btns {
+    display: none;
+    border-top: 1px solid rgb(0, 0, 128);
+}
+
+.mob-tab-btns>button {
+    font-size: 8px;
+    font-family: nouveaux;
+    line-height: 1.9;
+    background: none;
+    border: 1px solid rgb(0, 0, 128);
+    border-top: none;
+    border-bottom: none;
+    color: rgb(0, 0, 128);
+    margin: 0;
+    float: left;
+    min-width: 79px;
+    padding: 5px 2px;
+}
+
+.mob-tab-btns>button:first-child {
+    border-left: none;
+}
+
+.mob-tab-btns>button.active {
+    background: rgb(0, 0, 128);
+    color: white;
+}
+
+@media only screen and (max-width: 550px) {
+    /* mobile specifics */
+    .mob-tab-cnt {
+        z-index: 10;
+        position: absolute;
+        background: gainsboro;
+        height: calc(100% - 26px);
+        width: 100%;
+    }
+
+    .mob-tab-btns {
+        display: block;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    /* command box */
+    .cmd-box {
+        bottom: 58px !important;
+        left: 27px;
+    }
+
+    /* members styles */
+
+    .members:not(.mob-tab-cnt) {
+        display: none;
+    }
+
+    .members.mob-tab-cnt {
+        border-left: none;
+    }
+
+    .members>.list>.member {
+        padding: 5px;
+        box-sizing: border-box;
+    }
+
+    .members>.list>.member:nth-child(2n) {
+        background: rgb(200, 200, 200);
+    }
+
+    /* messaging env */
+    .separator {
+        display: none;
+    }
+
+    .messages>.message:first-child>.sig {
+        margin-top: 0;
+    }
+
+    .messages>.message:last-child {
+        border-color: transparent;
+    }
+
+    .messages>.message {
+        flex-direction: column;
+        border-bottom: 1px solid darkgray;
+    }
+
+    .messages>.message>.sig {
+        position: initial;
+        width: auto;
+        text-align: left;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+}
