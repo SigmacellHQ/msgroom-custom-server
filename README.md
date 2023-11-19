@@ -8,7 +8,7 @@ Please don't tell us that the code is bad, we will ignore you anyways.
 Just click on Code then Download ZIP, you normally should already know that,<br>
 if you didn't, why are you here?
 ### Step 2: Download dependencies
-Open a terminal in the folder, and run ```npm i socket.io socket.io-client express```<br>
+Open a terminal in the folder, and run ```npm i```<br>
 ### Step 3: Run the package
 If you want the default port (3030), on your terminal, run ```node index.js```<br>
 If you want a custom port, on your terminal, run ```node index.js (YOUR PORT HERE)```

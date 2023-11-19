@@ -1,11 +1,17 @@
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+import { sleep, formatUTCTime } from "./js/utils.js";
 
-let connected = false;
-let url = (location.protocol === "https:" ? "https://" : "http://") + window.location.hostname;
+// Elements
+const sendBtn = document.querySelector(".send");
+const nicknameBtn = document.querySelector(".nickname");
+const messageBox = document.querySelector(".message-box");
+const messageList = document.querySelector(".messages");
+const memberList = document.querySelector(".members>.list");
 
-// Utils
+// Config
+const API_URL = (location.protocol === "https:" ? "https://" : "http://") + window.location.hostname;
+let members = [];
+window.members = members;
+
 /**
  * Sends a text message.
  * @param {string} text The text to send.
@@ -17,82 +23,132 @@ function sendTextMessage(text) {
     });
 };
 
+/**
+ * Creates a message element and appends it to the chat.
+ * @param {Object} params The message parameters.
+ */
 function createMessage(params) {
     const opts = {
-        color: "#00f",
+        color: undefined,
+        allowHtml: false,
         user: "System",
         content: "",
+        classes: [],
         flags: [],
+        date: new Date().toUTCString(),
         ...params,
     }
+
+    console.debug(opts);
+
+    const msg = document.createElement("div");
+    msg.className = "message";
+    msg.classList.add(...opts.classes);
+    msg.innerHTML = `
+        <div class="sig">
+            <span class="time">${formatUTCTime(opts.date)}</span>
+            <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${DOMPurify.sanitize(opts.user)}</span>
+            ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
+        </div>
+
+        <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
+            ${params.id ? "<button onclick='try{navigator.clipboard.writeText(\"" + params.id + "\");}catch{alert(\"" + params.id + "\");};'>ID</button>" : ""}
+            ${DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>")}
+        </div>
+    `;
+
+    messageList.appendChild(msg);
+    messageList.scrollTo(0, messageList.scrollHeight);
 }
 
-// Elements
-const sendBtn = document.querySelector(".send");
-const nicknameBtn = document.querySelector(".nickname");
-const messageBox = document.querySelector(".message-box");
+/**
+ * Reloads the member list.
+ */
+function reloadMemberList() {
+    memberList.innerHTML = "";
 
-const socket = io(url, { transports: ['websocket'] });
+    members.forEach(member => {
+        memberList.innerHTML += `${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${DOMPurify.sanitize(member.user)}</div>`
+    });
+}
+
+// Socket
+const socket = io(API_URL, { transports: ['websocket'] });
 socket.on("connect", () => {
-    if (connected)
-        return location.reload();
-
-    connected = true;
-    let username = prompt("Enter username");
+    // Nickname
+    let username = localStorage.nickname ?? prompt("Enter username");
     if (!username || username.length < 1 || username.length > 16) {
         username = "anon" + Math.floor(Math.random() * 99) + 1;
+    } else {
+        localStorage.nickname = username;
     }
     document.querySelector(".nickname").innerText = username;
+
+    socket.on("online", (memberList) => {
+        members = memberList;
+        reloadMemberList();
+    })
+
+    // Authentication
     socket.emit("auth", { user: username });
-    socket.on("user-join", (data) => {
-        const element = document.createElement("div");
-        element.className = "message system info";
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content">-> User <span class="bold-noaa" style="color: ${DOMPurify.sanitize(data.color)};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D</div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-    });
-    socket.on("message", (data) => {
-        const element = document.createElement("div");
-        element.className = "message";
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author" style="background-color: #9c27b0;">${DOMPurify.sanitize(data.user)}</span>`;
-        /*if (data.flags.includes('staff')) {
-            content += `<span class="tag staff">staff</span>`;
-        } else if (data.flags.includes('bot')) {
-            content += `<span class="tag bot">bot</span>`;
-        }*/
-        content += `</div><div class="content messageContentFix" style="color: #9c27b0;">${DOMPurify.sanitize(marked.parse(data.content)).replaceAll("\\n", "<br>")}</div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-    });
-    socket.on("sys-message", (data) => {
-        const element = document.createElement("div");
-        element.className = "message system";
-        element.classList.add(data.type);
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content">${data.content}</div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-    });
-    socket.on("nick-changed", (data) => {
-        const element = document.createElement("div");
-        element.className = "message system success";
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content">User <span class="bold-noaa">${DOMPurify.sanitize(data.oldUser)}</span> changed their username to <span class="bold-noaa">${DOMPurify.sanitize(data.newUser)}</span></div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
+
+    socket.once("auth-complete", async (userId, sessionId) => {
+        // Join
+        socket.on("user-join", (data) => {
+            members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
+            reloadMemberList();
+            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D`, classes: ["system", "info"], date: Date.now() });
+        });
+
+        // Leave
+        socket.on("user-leave", (data) => {
+            members = members.filter(member => member.session_id !== data.session_id);
+            reloadMemberList();
+            createMessage({ content: `<- User <span class="bold-noaa">${DOMPurify.sanitize(data.user)}</span> left the chat :(`, classes: ["system", "error"], date: Date.now() });
+        });
+
+        // Message handling
+        socket.on("message", ({ user, content, id, color, date }) => {
+            createMessage({ user, content, id, color, date });
+        });
+
+        // System message handling
+        socket.on("sys-message", ({ content, type }) => {
+            createMessage({ content, classes: ["system", type] });
+        });
+
+        // Nickname change
+        socket.on("nick-changed", (data) => {
+            members = members.map(member => {
+                if (member.session_id === data.session_id) {
+                    member.user = data.newUser;
+                }
+                return member;
+            })
+            reloadMemberList();
+            createMessage({
+                content: `User **${DOMPurify.sanitize(data.oldUser)}** changed their username to **${DOMPurify.sanitize(data.newUser)}**`,
+                classes: ["system", "success"],
+            });
+        });
+        nicknameBtn.addEventListener("click", () => {
+            changeUsername();
+        });
     });
 
-    nicknameBtn.addEventListener("click", () => {
-        changeUsername();
-    });
+
 });
 
 function handleSend() {
     if (messageBox.value) {
-        sendTextMessage(messageBox.value);
-        messageBox.value = "";
+        if (messageBox.value.startsWith('/a ')) {
+            let all = messageBox.value.replace('/a ', '').split(' ');
+            socket.emit("admin-action", ["a", all]);
+            messageBox.value = "";
+        } else {
+            sendTextMessage(messageBox.value);
+            messageBox.value = "";
+        }
     }
 }
 
@@ -108,14 +164,7 @@ messageBox.addEventListener("keydown", (e) => {
 socket.on('disconnect', () => {
     location.reload();
 });
-function sendSysErrorMessage(html) {
-    const element = document.createElement("div");
-    element.className = "message system error";
-    element.innerHTML = html;
-    document.querySelector(".messages").appendChild(element);
-    document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-    return true;
-}
+
 function changeUsername(username = null) {
     if (!username) {
         let newUsername = prompt("Enter a new username");
@@ -124,13 +173,15 @@ function changeUsername(username = null) {
         }
     } else {
         if (username.length < 1 || username.length > 18) {
-            sendSysErrorMessage(`<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content"><span class="bold-noaa">This nickname is not allowed.</span></div>`);
+            createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"], date: Date.now() });
         } else {
             document.querySelector(".nickname").innerText = username;
             socket.emit("nick-change", username);
             socket.on("nick-changed-success", (res) => {
                 if (!res) {
                     changeUsername();
+                } else {
+                    localStorage.setItem("nickname", username);
                 }
             });
         }
