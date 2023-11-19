@@ -72,7 +72,11 @@
 
         <script>
         // app.call(window);
-        const socket = io("ws://km72w2hp-3030.uks1.devtunnels.ms/");
+        let url = "wss://" + window.location.hostname;
+        if(location.protocol !== 'https:') {
+            url = "ws://" + window.location.hostname;
+        }
+        const socket = io(url);
         socket.emit("message", "world", (response) => {
             console.log(response); // "got it"
         });
