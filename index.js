@@ -2,7 +2,8 @@ import { createServer as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import {
     writeFileSync,
-    readFileSync
+    readFileSync,
+    existsSync,
 } from "fs";
 
 const http = HTTPServer();
@@ -10,18 +11,45 @@ const io = new SocketIOServer(http, {
     path: "/socket.io",
 });
 
+/** @type {Map<string, {socket: Socket[], data: {}}>} Stores connected users */
+let users = new Map();
+
 /**
  * Waits for a connection from a client
  */
 io.on("connection", (socket) => {
-    console.debug("Socket:", socket);
+    users.set(socket);
+
+    io.emit("user-join", {"username": null});
 
     /**
      * On message reception, handle it
      */
-    socket.on("message", (msg) => {
-        console.debug("Message received:", msg);
+    socket.on("nick-changed", (username) => {
+        if(username.length < 1 || username.length > 18) {
+            socket.emit("nick-changed", false);
+        } else {
+            socket.emit("nick-changed", true);
+        }
     });
+
+    setInterval(() => {
+        socket.emit("message", {
+            user: 'test',
+            content: 'OMG',
+            flags: [
+                "staff"
+            ]
+        });
+    }, 1000);
+
+    socket.on("disconnect", () => {
+        users.delete(socket);
+
+        io.emit("user-left", {
+            
+        })
+    })
 });
 
 /**
@@ -35,7 +63,7 @@ http.on("request", async(req, res) => {
 
     if(req.method === "POST") {
         req.on('data', (chunk) => {
-            POST += chunk.toString();
+            POST += chunk.toString(); //TODO: fix since this goofy ahh stackoverflow code doesnt work
         });
     }
 
@@ -45,88 +73,93 @@ http.on("request", async(req, res) => {
         GET = params[1];
     }
 
+    if(GET) {
+        let pairs = GET.split("&");
+        let obj = {};
+        pairs.forEach(pair => {
+            let value = pair.split("=");
+            obj[value[0]] = value[1] || '';
+        });
+        GET = obj;
+    }
+
+    let continueHttp = true;
     if(url === "/socket.io/") {
+        continueHttp = false;
         res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
         res.end();
         return;
     } else if(url === "/credits.html") {
+        continueHttp = false;
+        let content = await readFileSync("./credits.html");
         res.writeHead(200, { "Content-Type": "text/html", "Access-Control-Allow-Origin": "*" });
-        res.end(`<a href='/'>< Back to MsgRoom</a>
-<h1>Credits</h1>
-<div style="display:flex;margin-top: 10px;"><img src="https://media.discordapp.net/attachments/1124689325330792550/1175570353582518413/gdcube.png?ex=656bb635&is=65594135&hm=e42fd7b5cbb76f7c878d7cbc4d09e5808728de4416b2b3f48f1b53c15dd7b41f&=" style="width: 130px;height: 130px;">
-    <div style="margin-left: 10px;">
-        <h1 style="margin: 0;">nolanwhy</h1>
-        <p>owner of teh project and also did <strong>A LOT</strong></p>
-        <div style="display:flex;">
-            <a href="http://nolanwhy.github.io/w96-repo">Windows 96 Repo</a>
-        </div>
-    </div>
-</div>
-<div style="display:flex;margin-top: 10px;"><img src="/" style="width: 130px;height: 130px;">
-    <div style="margin-left: 10px;">
-        <h1 style="margin: 0;">Kelbaz</h1>
-        <p>a cool guy that helped <strong>A LOT</strong></p>
-    </div>
-</div>`);
+        res.end(content);
         return;
     }
 
-    // Search for the requested path
-    switch (fetchUrl) {
-        case "/": {
-            url = "/index.html";
-            break;
+    if(continueHttp) {
+        // Search for the requested path
+        switch (url) {
+            case "/": {
+                url = "/index.html";
+                break;
+            }
         }
-    }
 
-    let file = null;
-    try{ //                                          w96 utf reference :screm:
-        file = await readFileSync("./web" + url, { encoding: 'utf-8' }); // todo: make it securer, people can do ../index.js
-    } catch {
-        // No need to do anything then
-    }
+        let errored = false;
+        let file = null; // do something so its empty, but still says that theres something
 
-    // Define default values
-    let headers = {};
-    let code = 200;
-    let content = null;
+        
+        try{
+            errored = false;
+            file = readFileSync("./web" + url, { encoding: 'utf-8' }); // todo: make it securer, people can do ../index.js
+        } catch {
+            errored = true;
+            file = null;
+        }
 
-    // Set Extension
-    let extension = url.split('.')[url.split('.').length - 1];
+        // Define default values
+        let headers = {};
+        let code = 200;
+        let content = null;
 
-    // Check if the file exists
-    if(!file) {
-        code = 404;
-        content = getHttpError(404);
-        extension = "html";
-    } else {
-        content = file;
-    }
+        // Set Extension
+        let extension = url.split('.')[url.split('.').length - 1];
 
-    // Define Headers
-    if(extension === "html" || extension === "htm") {
-        headers["Content-Type"] = "text/html";
-    } else if(extension === "css") {
-        headers["Content-Type"] = "text/css";
-    } else if(extension === "js") {
-        headers["Content-Type"] = "text/javascript";
-    } else if(extension === "json") {
-        headers["Content-Type"] = "application/json";
-    } else if(extension === "woff") {
-        headers["Content-Type"] = "font/woff";
-    } else if(extension === "woff2") {
-        headers["Content-Type"] = "font/woff2";
-    } else {
-        headers["Content-Type"] = "text/plain";
-    }
-    headers["Access-Control-Allow-Origin"] = "*";
+        // Check if the file exists
+        if(!file && errored) {
+            code = 404;
+            content = getHttpError(404);
+            extension = "html";
+        } else {
+            content = file;
+        }
 
-    // Return the value
-    try{
-        res.writeHead(code, undefined, headers);
-        res.end(content);
-    } catch (e) {
-        console.error(e);
+        // Define Headers
+        if(extension === "html" || extension === "htm") {
+            headers["Content-Type"] = "text/html";
+        } else if(extension === "css") {
+            headers["Content-Type"] = "text/css";
+        } else if(extension === "js") {
+            headers["Content-Type"] = "text/javascript";
+        } else if(extension === "json") {
+            headers["Content-Type"] = "application/json";
+        } else if(extension === "woff") {
+            headers["Content-Type"] = "font/woff";
+        } else if(extension === "woff2") {
+            headers["Content-Type"] = "font/woff2";
+        } else {
+            headers["Content-Type"] = "text/plain";
+        }
+        headers["Access-Control-Allow-Origin"] = "*";
+
+        // Return the value
+        try{
+            res.writeHead(code, undefined, headers);
+            res.end(content);
+        } catch (e) {
+            console.error(e);
+        }
     }
 });
 
@@ -147,5 +180,14 @@ const PORT = parseInt(args[2]) || 3030; // 0: node, 1: index.js, 2: port
 console.debug("Arguments:", args);
 
 console.log(`Starting on port ${PORT}...`);
-http.listen(PORT);
-console.log(`Done: http://localhost:${PORT}`);
+let started = false;
+try{
+    http.listen(PORT);
+    started = true;
+} catch(e) {
+    started = false;
+    console.error(e);
+}
+if(started) {
+    console.log(`Done: http://localhost:${PORT}`);
+}

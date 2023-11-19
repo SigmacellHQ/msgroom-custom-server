@@ -19,6 +19,8 @@ You also need an ngrok account, setup ngrok [here](https://ngrok.com/)
 You successfully installed MsgRoom Custom Server!<br>
 On the terminal, you should see the Arguments, and the url to visit your custom server.<br>
 **Thank you for using our custom server!**
-## How to give yourself staff
+## How to give yourself staff, and ban people
 Go in database/admins.json and add your ID.<br>
+Then you can execute /a help to get every admin command.<br>
+To ban, use /a ban or put the user's id in database/banned.json<br>
 (Note: **THIS WILL BE CHANGED SOON TO SOMETHING ELSE**)
