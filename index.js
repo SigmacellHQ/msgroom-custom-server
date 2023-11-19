@@ -109,9 +109,9 @@ http.on("request", async(req, res) => {
     } else if(extension === "css") {
         headers["Content-Type"] = "text/css";
     } else if(extension === "js") {
-        headers["Content-Type"] = "application/javascript";
+        headers["Content-Type"] = "text/javascript";
     } else if(extension === "json") {
-        headers["Content-Type"] = "text/json";
+        headers["Content-Type"] = "application/json";
     } else if(extension === "woff") {
         headers["Content-Type"] = "font/woff";
     } else if(extension === "woff2") {
