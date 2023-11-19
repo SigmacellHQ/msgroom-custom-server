@@ -7,7 +7,7 @@ Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/
 Just click on Code then Download ZIP, you normally should already know that,<br>
 if you didn't, why are you here?
 ### Step 2: Download dependencies
-Open a terminal on the folder, and run ```npm i socket.io express```<br>
+Open a terminal in the folder, and run ```npm i socket.io express```<br>
 ### Step 3: Run the package
 If you want the default port (3030), on your terminal, run ```node index.js```<br>
 If you want a custom port, on your terminal, run ```node index.js (YOUR PORT HERE)```
@@ -15,7 +15,10 @@ If you want a custom port, on your terminal, run ```node index.js (YOUR PORT HER
 If you want to share with friends, we recommand ngrok, on your terminal, run ```ngrok http 3030```<br>
 Or if you did a custom port, run ```ngrok http (YOUR PORT HERE)```<br>
 You also need an ngrok account, setup ngrok [here](https://ngrok.com/)
-## Done!
+### Done!
 You successfully installed MsgRoom Custom Server!<br>
 On the terminal, you should see the Arguments, and the url to visit your custom server.<br>
 **Thank you for using our custom server!**
+## How to give yourself staff
+Go in database/admins.json and add your ID.<br>
+(Note: **THIS WILL BE CHANGED SOON TO SOMETHING ELSE**)
