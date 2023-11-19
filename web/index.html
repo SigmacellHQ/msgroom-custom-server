@@ -11,7 +11,7 @@
         <meta property="og:image" content="img/icon/favicon-large.png" />
         <meta property="og:description" content="The official Windows 96 chat room as featured on the site!" />
         <title>MsgRoom - Windows 96 Chat</title>
-        <link rel="stylesheet" href="https://msgroom.windows96.net/css/font36.css">
+        <link rel="stylesheet" href="css/font36.css">
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/shell36.css">
         <link rel="stylesheet" href="css/ua-chrome.css">
@@ -20,33 +20,32 @@
         <!-- <script src="https://msgroom.windows96.net/socket.io/socket.io.js"></script> -->
         <!-- <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script> -->
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
-        <script src="main.js"></script>
+        <script src="main.js" type="module" defer></script>
         <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="./purify.js"></script>
         <link rel="shortcut icon" href="img/icon/favicon-large.png">
         <link rel="apple-touch-icon" href="img/icon/favicon-large.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <style>
-        /*.members>.list>.member>.tag{
+        .members>.list>.member>.tag{
             margin-right: 0;
         }
         .message>.sig>.tag{
             margin-left: -5px;
-        }*/
+        }
+        .messageContentFix{
+            white-space: normal;
+        }
+        .messageContentFix p{
+            margin: 0;
+        }
         </style>
     </head>
     <body>
         <div class="main">
             <div class="separator"></div>
-            <div class="messages">
-                <div class="message">
-                    <div class="sig">
-                        <span class="time">10:03 PM</span>
-                        <span class="author" style="background-color: #9c27b0;">Floppeur_Du_93</span>
-                        <span class="tag staff">staff</span>
-                    </div>
-                    <div class="content" style="color: #9c27b0;">Bonjour, c'est Floppeur! Le staff chiant!</div>
-                </div>
-            </div>
+            <div class="messages"></div>
             <div class="user-input">
                 <span class="nickname">Unknown</span>
                 <input type="text" class="message-box w96-textbox">
@@ -58,11 +57,10 @@
             <span class="title bold-noaa">Online Members</span>
             <div class="list">
                 <div class="member" uid="ID-0" style="color: rgb(156, 39, 176);">
-                    <span class="tag staff">staff</span>
-                    Floppeur_Du_93
+                    Games123
                 </div>
                 <div style="position: fixed;bottom: 0;margin: 10px;right: 0;">
-                    <a href="#" onclick='if(confirm("This will make you disconnect. Are you sure?")) {window.location = "/credits.html";}'>
+                    <a href="#" onclick='if(confirm("This will make you disconnect. Are you sure?")) window.location = "/credits"'>
                         <p>Credits</p>
                     </a>
                 </div>
@@ -73,70 +71,6 @@
 
         <script>
         // app.call(window);
-        let url = "https://" + window.location.hostname;
-        if(location.protocol !== 'https:') {
-            url = "http://" + window.location.hostname;
-        }
-        const socket = io(url, {transports: ['websocket']});
-        socket.on("connect", () => {
-            let username = prompt("Enter username");
-            if(username.length < 1 || username.length > 18) {
-                username = "anon" + Math.floor(Math.random() * 99) + 1;
-            }
-            document.querySelector(".nickname").innerText = username;
-            socket.emit("nick-changed", username);
-            socket.on("nick-changed", (res) => {
-                if(!res) {
-                    changeUsername();
-                }
-            });
-            socket.on("message", (data) => {
-                const element = document.createElement("div");
-                element.className = "message system error";
-                let content = `<div class="message"><div class="sig"><span class="time">0:00 ??</span><span class="author" style="background-color: #9c27b0;">${data.user}</span>`;
-                if(data.flags.includes('staff')) {
-                    content += `<span class="tag staff">staff</span>`;
-                }
-                content += `</div><div class="content" style="color: #9c27b0;">${data.content}</div></div>`;
-                element.innerHTML = content;
-                document.querySelector(".messages").appendChild(element);
-                document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-            });
-            document.querySelector(".nickname").addEventListener("click", () => {
-                changeUsername();
-            });
-        });
-        function sendSysErrorMessage(html) {
-            const element = document.createElement("div");
-            element.className = "message system error";
-            element.innerHTML = html;
-            document.querySelector(".messages").appendChild(element);
-            document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
-            return true;
-        }
-        function changeUsername(username = null) {
-            if(!username) {
-                let newUsername = prompt("Enter a new username");
-                if(newUsername) {
-                    changeUsername(newUsername);
-                }
-            } else {
-                if(username.length < 1 || username.length > 18) {
-                    sendSysErrorMessage(`<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content"><span class="bold-noaa">This nickname is not allowed.</span></div>`);
-                } else {
-                    document.querySelector(".nickname").innerText = username;
-                    socket.emit("nick-changed", username);
-                    socket.on("nick-changed", (res) => {
-                        if(!res) {
-                            changeUsername();
-                        }
-                    });
-                }
-            }
-        }
-        function sendMessage(msg) {
-
-        }
         </script>
     </body>
 </html>

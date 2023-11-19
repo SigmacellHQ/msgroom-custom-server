@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap');
+@import url("../css/panels.css");
+
+body {
+    display: flex;
+    flex-direction: column;
+
+    > main {
+        flex-grow: 1;
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        > form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+}

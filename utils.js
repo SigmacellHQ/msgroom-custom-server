@@ -1,3 +1,3 @@
-export function getIDFromSocket(socket) {
-  console.log(socket);
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

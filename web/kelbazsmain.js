@@ -19,12 +19,43 @@ function sendTextMessage(text) {
 
 function createMessage(params) {
     const opts = {
-        color: "#00f",
-        user: "System",
-        content: "",
+        color: params.color,
+        user: params.user ?? "System",
+        content: params.content,
         flags: [],
         ...params,
     }
+    
+    const msg = document.querySelector("div");
+    if(!params.system) {
+        msg.className = "message";
+        msg.innerHTML = `
+            <div class="sig">
+                <span class="time">0:00 ??</span>
+                <span class="author" style="background-color: ${opts.color};">${DOMPurify.sanitize(opts.user)}</span>
+                ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
+            </div>
+
+            <div class="content messageContentFix" style="color: ${opts.color};">
+                ${DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>")}
+            </div>
+        `;
+    } else {
+        msg.className = "message system";
+        msg.classList.add(params.system.type);
+        msg.innerHTML = `
+            <div class="sig">
+                <span class="time">0:00 ??</span>
+                <span class="author">System</span>
+            </div>
+
+            <div class="content messageContentFix">
+                ${DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>")}
+            </div>
+        `;
+    }
+    document.querySelector(".messages").appendChild(element);
+    document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
 }
 
 // Elements
@@ -47,33 +78,19 @@ socket.on("connect", () => {
     socket.on("user-join", (data) => {
         const element = document.createElement("div");
         element.className = "message system info";
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content">-> User <span class="bold-noaa" style="color: ${DOMPurify.sanitize(data.color)};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D</div>`;
+        let content = ``;
         element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
+        
     });
-    socket.on("message", (data) => {
-        const element = document.createElement("div");
-        element.className = "message";
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author" style="background-color: #9c27b0;">${DOMPurify.sanitize(data.user)}</span>`;
-        /*if (data.flags.includes('staff')) {
-            content += `<span class="tag staff">staff</span>`;
-        } else if (data.flags.includes('bot')) {
-            content += `<span class="tag bot">bot</span>`;
-        }*/
-        content += `</div><div class="content messageContentFix" style="color: #9c27b0;">${DOMPurify.sanitize(marked.parse(data.content)).replaceAll("\\n", "<br>")}</div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
+    
+    // Message handling
+    socket.on("message", ({user, content, flags, color}) => {
+        createMessage({ user, content, flags, color });
     });
-    socket.on("sys-message", (data) => {
-        const element = document.createElement("div");
-        element.className = "message system";
-        element.classList.add(data.type);
-        let content = `<div class="sig"><span class="time">0:00 ??</span><span class="author">System</span></div><div class="content">${data.content}</div>`;
-        element.innerHTML = content;
-        document.querySelector(".messages").appendChild(element);
-        document.querySelector(".messages").scrollTo(0, document.querySelector(".messages").scrollHeight);
+
+    // System message handling
+    socket.on("sys-message", ({ type, content }) => {
+        createMessage({ content, system: { type: type } });
     });
     socket.on("nick-changed", (data) => {
         const element = document.createElement("div");

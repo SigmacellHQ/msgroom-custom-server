@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap');
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    padding: 10px;
+    font-family: "FigTree", sans-serif;
+    background-color: #333;
+    color: #fff;
+
+    height: 100vh;
+}
+
+header {
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 10px;
+
+    >.title {
+        position: absolute;
+        inset: 50%;
+        translate: -50% -50%;
+
+        text-wrap: nowrap;
+
+        font-size: 2rem;
+        font-weight: 700;
+
+        width: fit-content;
+        height: fit-content;
+    }
+}
+
+a,
+button,
+input[type="submit"],
+input[type="button"],
+input[type="text"],
+input[type="password"] {
+    text-decoration: none;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #fff;
+    color: #333;
+
+    border: none;
+    font: "FigTree", sans-serif;
+
+    padding: 8px;
+    border-radius: 4px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 200px;
+}

@@ -94,7 +94,8 @@
   
   b,
   strong {
-    font-weight: bolder;
+    font-weight: normal;
+    text-shadow: 1px 0 0;
   }
   
   /**
