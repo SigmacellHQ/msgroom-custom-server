@@ -1,1 +1,5 @@
 - Rewrite for Express (package already downloaded)
+
+I made sure it works so just run `npm i -D msgroom`
+then import from `msgroom/types/socket.io`
+^ this is up to you it just gives autocomplete and type safety without having to use typescript ourselves
