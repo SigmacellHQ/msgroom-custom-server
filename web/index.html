@@ -45,10 +45,10 @@
         <link rel="apple-touch-icon" href="img/icon/favicon-large.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <style>
-            .members > .list > .member > .tag {
+            /*.members > .list > .member > .tag {
                 margin-right: 0;
-            }
-            .message > .sig > .tag {
+            }*/
+            .message > .sig > .tag:not(.tag + .tag) {
                 margin-left: -5px;
             }
             .messageContentFix {
@@ -72,11 +72,7 @@
 
         <div class="members">
             <span class="title bold-noaa">Online Members</span>
-            <div class="list">
-                <div class="member" uid="ID-0" style="color: rgb(156, 39, 176)">
-                    Games123
-                </div>
-            </div>
+            <div class="list"></div>
         </div>
 
         <div id="credits">

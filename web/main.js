@@ -1,4 +1,4 @@
-import { sleep, formatUTCTime } from "./js/utils.js";
+import { sleep, formatUTCTime, fixXSS } from "./js/utils.js";
 
 // Elements
 const sendBtn = document.querySelector(".send");
@@ -58,15 +58,19 @@ function createMessage(params) {
     msg.innerHTML = `
         <div class="sig">
             <span class="time">${formatUTCTime(opts.date)}</span>
-            <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${DOMPurify.sanitize(opts.user)}</span>
+            <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${fixXSS(opts.user)}</span>
             ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
         </div>
 
         <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-            ${params.id ? "<button onclick='try{navigator.clipboard.writeText(\"" + params.id + "\");}catch{alert(\"" + params.id + "\");};'>ID</button>" : ""}
             ${DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>")}
         </div>
     `;
+
+    msg.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        if(params.id) createMessage({ content: "User ID: " + params.id, classes: ["system", "info"] });
+    });
 
     messageList.appendChild(msg);
     messageList.scrollTo(0, messageList.scrollHeight);
@@ -79,12 +83,12 @@ function reloadMemberList() {
     memberList.innerHTML = "";
 
     members.forEach(member => {
-        memberList.innerHTML += `${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${DOMPurify.sanitize(member.user)}</div>`
+        memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
     });
 }
 
 // Socket
-const socket = io(API_URL, { transports: ['websocket'] });
+const socket = io(API_URL, { transports: ["websocket"] });
 window.socket = socket;
 socket.on("connect", () => {
     // Nickname
@@ -104,24 +108,29 @@ socket.on("connect", () => {
     // Authentication
     socket.emit("auth", { user: username });
 
+    socket.once("auth-error", async (content) => {
+        createMessage({ content, classes: ["system", "error"] });
+    });
+
     socket.once("auth-complete", async (userId, sessionId) => {
         // Join
         socket.on("user-join", (data) => {
             members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
             reloadMemberList();
-            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D`, classes: ["system", "info"] });
+            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${fixXSS(data.user)}</span> joined the chat :D`, classes: ["system", "info"] });
         });
 
         // Leave
         socket.on("user-leave", (data) => {
             members = members.filter(member => member.session_id !== data.session_id);
             reloadMemberList();
-            createMessage({ content: `<- User <span class="bold-noaa">${DOMPurify.sanitize(data.user)}</span> left the chat :(`, classes: ["system", "error"] });
+            createMessage({ content: `<- User <span class="bold-noaa">${fixXSS(data.user)}</span> left the chat :(`, classes: ["system", "error"] });
         });
 
         // Message handling
         socket.on("message", ({ user, content, id, color, date }) => {
-            createMessage({ user, content, id, color, date });
+            const flags = members.find(member => member.id === id)?.flags || [];
+            createMessage({ user, content, id, flags, color, date });
         });
 
         // System message handling
@@ -139,7 +148,7 @@ socket.on("connect", () => {
             })
             reloadMemberList();
             createMessage({
-                content: `User **${DOMPurify.sanitize(data.oldUser)}** changed their username to **${DOMPurify.sanitize(data.newUser)}**`,
+                content: `User **${fixXSS(data.oldUser)}** changed their username to **${fixXSS(data.newUser)}**`,
                 classes: ["system", "success"],
             });
         });
@@ -161,7 +170,11 @@ function handleSend() {
                 cmd.exec({ socket, args });
             }
         } else {
-            sendTextMessage(messageBox.value);
+            if(messageBox.value.length <= 2048) {
+                sendTextMessage(messageBox.value);
+            } else {
+                alert("Message > 2048");
+            }
         }
 
         messageBox.value = "";
@@ -178,7 +191,8 @@ messageBox.addEventListener("keydown", (e) => {
 })
 
 socket.on('disconnect', () => {
-    location.reload();
+    // location.reload();
+    createMessage({ content: "You have been disconnected from the server. [Click here to reconnect](/)", classes: ["system", "error"] });
 });
 
 function changeUsername(username = null) {
@@ -192,8 +206,8 @@ function changeUsername(username = null) {
             createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"] });
         } else {
             document.querySelector(".nickname").innerText = username;
-            socket.emit("nick-change", username);
-            socket.on("nick-changed-success", (res) => {
+            socket.emit("change-user", username);
+            socket.on("change-user-success", (res) => {
                 if (!res) {
                     changeUsername();
                 } else {

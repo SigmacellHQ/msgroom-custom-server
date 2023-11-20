@@ -2,7 +2,6 @@ import {
     writeFileSync,
     readFileSync,
 } from "fs";
-import { sleep } from "../utils.js";
 import crypto from 'crypto';
 
 /** @type {Map<string, {socket: Socket, data: {}}>} Stores connected users */
@@ -30,8 +29,6 @@ export function getUserData(socket) {
         if (id === u.data.id) uid += 1;
     });
 
-    console.debug(`USER SID: ${id}-${uid}\n-------------------`);
-
     // Flags
     const flags = [];
 
@@ -52,7 +49,7 @@ export function handle(io) {
         let messagesPerSecond = 0;
         let sentUsername = false;
 
-        socket.on("auth", async (auth) => {
+        socket.once("auth", async (auth) => {
             if (sentUsername) return;
             sentUsername = true;
 
@@ -68,39 +65,41 @@ export function handle(io) {
 
             let admins = JSON.parse(await readFileSync("./database/admins.json"));
             let bots = JSON.parse(await readFileSync("./database/bots.json"));
+            let bans = JSON.parse(await readFileSync("./database/banned.json"));
 
-            for (var i = 0; i < admins.length; i++) {
-                if (admins[i].includes(msgroom_user.id)) {
-                    msgroom_user.flags.push('staff');
-                    break;
-                }
-            }
-            for (var i = 0; i < bots.length; i++) {
-                if (bots[i].includes(msgroom_user.id)) {
-                    msgroom_user.flags.push('bot');
-                    break;
-                }
+            if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
+                msgroom_user.flags.push('staff');
             }
 
-            socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
+            if (Object.values(bots).some(v => v.includes(msgroom_user.id))) {
+                msgroom_user.flags.push('bot');
+            }
+            
+            if (Object.values(bans).some(v => v.includes(msgroom_user.id))) {
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong.</span> " + msgroom_user.id);
+                socket.disconnect();
+                return;
+            } else {
+                socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
 
-            io.emit("user-join", {
-                user: msgroom_user.user,
-                color: msgroom_user.color,
-                id: msgroom_user.id,
-                session_id: msgroom_user.session_id,
-                flags: msgroom_user.flags,
-            });
+                socket.emit("message", {
+                    type: 'text',
+                    content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.',
+                    user: 'System',
+                    color: 'rgb(0, 0, 128)',
+                    id: '',
+                    session_id: '',
+                    date: new Date().toUTCString()
+                });
 
-            socket.emit("message", {
-                type: 'text',
-                content: 'This is a recoded version of MsgRoom. Things aren\'t broken, they just aren\'t made.',
-                user: 'System',
-                color: 'rgb(0, 0, 128)',
-                id: '',
-                session_id: '',
-                date: new Date().toUTCString()
-            });
+                io.emit("user-join", {
+                    user: msgroom_user.user,
+                    color: msgroom_user.color,
+                    id: msgroom_user.id,
+                    session_id: msgroom_user.session_id,
+                    flags: msgroom_user.flags,
+                });
+            }
 
             let resetMessagesPerSecond = setInterval(() => {
                 messagesPerSecond = 0;
@@ -109,12 +108,11 @@ export function handle(io) {
             /**
              * On message reception, handle it
              */
-            socket.on("nick-change", (username) => {
+            socket.on("change-user", (username) => {
                 if (username.length < 1 || username.length > 16) {
-                    socket.emit("nick-changed-success", false);
+                    socket.emit("change-user-success", false);
                 } else {
-                    socket.emit("nick-changed-success", true);
-                    let user = null;
+                    socket.emit("change-user-success", true);
                     io.emit("nick-changed", {
                         oldUser: msgroom_user.user,
                         newUser: username,
@@ -126,13 +124,31 @@ export function handle(io) {
             });
 
             socket.on("admin-action", async ({ args }) => {
-                console.log("ADMIN\n-------------------");
-
+                let log = "Admin Action";
                 let admins = JSON.parse(await readFileSync("./database/admins.json"));
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
-
+                let bans = JSON.parse(await readFileSync("./database/banned.json"));
+                log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
                 if (args[0] === "a") {
-                    if (args[1] === "auth") {
+                    if (args[1] === "help") { {
+                        if (authed) {
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: `Admin commands list<br><br><br>&lt;item&gt; denotes required, [item] for optional.<br><br>
+/a help: this thing<br>
+/a status [id]: Status of user id, otherwise shows your own<br>
+/a ban &lt;id&gt;: ban a user<br>
+/a unban &lt;id&gt;: unban a user<br>
+----- NOT DONE -----
+/a shadowban &lt;id&gt;: shadowban a user<br>
+/a shadowunban &lt;id&gt;: shadowunban a user<br>
+/a whitelist &lt;id&gt;: whitelist a user from the IP check<br>
+/a disconnect &lt;id&gt;: disconnect a user<br><br>
+IDs can be obtained from /list.`
+                            });
+                        }
+                    }
+                    } else if (args[1] === "auth") {
                         if (authed) {
                             socket.emit("sys-message", {
                                 type: "info",
@@ -148,11 +164,11 @@ export function handle(io) {
 
                         if (keySet) {
                             admins[keySet[0]].push(msgroom_user.id);
-                            writeFileSync("./database/admins.json", JSON.stringify(admins, null, 4));
+                            writeFileSync("./database/admins.json", JSON.stringify(admins));
 
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: 'You are now authentificated as a staff member.'
+                                content: 'You are now authentificated as a staff member. Rejoin to make people see you\'re staff.'
                             });
                         } else {
                             socket.emit("sys-message", {
@@ -185,23 +201,72 @@ export function handle(io) {
                                 `IP: <span class="bold-noaa">${targetUser.socket.conn.remoteAddress}</span>`
                             ].join("<br />")
                         });
+                    } else if (args[1] === "ban") {
+                        if (args[2]) {
+                            let targetUser = {data: null, socket: null}
+                            targetUser = [...users.values()].find(u => u.data.id === args[2]);
+
+                            if (!targetUser) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "User doesn't exist"
+                                });
+                                return;
+                            } else {
+                                bans.push(targetUser.id);
+                                writeFileSync("./database/banned.json", JSON.stringify(bans));
+                                targetUser.socket.disconnect();
+                                socket.emit("sys-message", {
+                                    type: "info",
+                                    content: "User banned"
+                                });
+                            }
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "unban") {
+                        if (args[2]) {
+                            for(var i = 0; i < bans.length; i++) {
+                                if(args[2] === bans[i]) {
+                                    bans[i].splice(i, 1);
+                                    break;
+                                }
+                            }
+                            writeFileSync("./database/banned.json", JSON.stringify(bans));
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "User unbanned"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
                     }
                 }
+                log += "\n-------------------";
+                console.log(log);
             });
 
             // Message handling
             socket.on("message", data => {
                 if (messagesPerSecond <= 1) {
-                    messagesPerSecond++;
-                    io.emit("message", {
-                        type: 'text',
-                        content: data.content,
-                        user: msgroom_user.user,
-                        color: msgroom_user.color,
-                        id: msgroom_user.id,
-                        session_id: msgroom_user.session_id,
-                        date: new Date().toUTCString()
-                    });
+                    if(data.content.length <= 2048) {
+                        messagesPerSecond++;
+                        io.emit("message", {
+                            type: 'text',
+                            content: data.content,
+                            user: msgroom_user.user,
+                            color: msgroom_user.color,
+                            id: msgroom_user.id,
+                            session_id: msgroom_user.session_id,
+                            date: new Date().toUTCString()
+                        });
+                    }
                 } else {
                     socket.emit("sys-message", {
                         type: "error",

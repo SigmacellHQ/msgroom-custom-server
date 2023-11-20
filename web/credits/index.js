@@ -21,6 +21,16 @@ const users = {
             "Windows 96 Repo": "http://onofficiel.github.io/w96",
             "Website": "https://kelbazz.github.io",
         }
+    },
+    "517237145828851713": {
+        "name": "Windows 96 Team",
+        "bio": "Creators of MsgRoom",
+        "links": {
+            "Discord": "https://discord.gg/YW5wAe9R94",
+            "Windows 96": "https://windows96.net",
+            "OG MsgRoom": "https://msgroom.windows96.net",
+            "Website": "https://sys36.net/",
+        }
     }
 }
 

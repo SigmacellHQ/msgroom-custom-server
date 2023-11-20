@@ -1,6 +1,7 @@
 export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 export function formatUTCTime(date) {
   date = new Date(Date.parse(date)) ?? new Date();
   const hours = date.getHours();

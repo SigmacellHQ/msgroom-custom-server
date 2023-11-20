@@ -13,3 +13,12 @@ export function formatUTCTime(date) {
 
     return `${formattedHours}:${formattedMinutes} ${amOrPm}`;
 }
+
+export function fixXSS(string) {
+    // this code is shit, who cares
+    const tempElement = document.createElement("span");
+    tempElement.innerText = string;
+    let final = tempElement.innerHTML;
+    tempElement.remove();
+    return final;
+}

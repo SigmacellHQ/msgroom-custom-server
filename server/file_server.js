@@ -74,6 +74,9 @@ export function handle(http) {
     let fetchUrl = req.url;
     let url = fetchUrl;
 
+    console.log(url);
+    if (url.startsWith(process.env.API_ENDPOINT)) return;
+
     var GET = {};
     var POST = {};
     var GETtemp = "";
@@ -221,7 +224,7 @@ export function handle(http) {
 
     log += "\n-------------------";
 
-    console.log(log);
+    // console.log(log);
 
     // Define Headers
     const mimeMap = new Map([

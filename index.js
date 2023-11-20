@@ -1,13 +1,17 @@
+import "dotenv/config";
 import { createServer as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { handle as handleFileRequests } from "./server/file_server.js";
 import { handle as handleSIORequests } from "./server/socket_server.js";
+import { handle as handleAdminAPI } from "./server/admin_api.js";
 
 const http = HTTPServer();
 const io = new SocketIOServer(http, {
     path: "/socket.io",
+    transports: ["polling", "websocket"]
 });
 
+handleAdminAPI(http);
 handleFileRequests(http);
 handleSIORequests(io);
 

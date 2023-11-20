@@ -63,6 +63,10 @@ body {
     padding-right: 5px;
 }
 
+.bot {
+    background: linear-gradient(to bottom right, rgb(128, 0, 0), rgb(0, 0, 128)) !important;
+}
+
 .message>.sig>.time {
     padding-right: 5px;
 }
