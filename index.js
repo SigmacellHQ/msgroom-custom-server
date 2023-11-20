@@ -14,8 +14,6 @@ handleSIORequests(io);
 const args = process.argv;
 const PORT = parseInt(args[2]) || 3030; // 0: node, 1: index.js, 2: port
 
-console.debug("Arguments:", args);
-
 console.log(`Starting on port ${PORT}...`);
 let started = false;
 try {

@@ -7,10 +7,21 @@ const messageBox = document.querySelector(".message-box");
 const messageList = document.querySelector(".messages");
 const memberList = document.querySelector(".members>.list");
 
+// Commands
+const COMMANDS = [
+    {
+        name: "a",
+        hidden: !0,
+        description: "Executes an admin action.",
+        exec: ({ socket, args }) => {
+            socket.emit("admin-action", { args })
+        }
+    }
+]
+
 // Config
-const API_URL = (location.protocol === "https:" ? "https://" : "http://") + window.location.hostname;
+const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
 let members = [];
-window.members = members;
 
 /**
  * Sends a text message.
@@ -74,6 +85,7 @@ function reloadMemberList() {
 
 // Socket
 const socket = io(API_URL, { transports: ['websocket'] });
+window.socket = socket;
 socket.on("connect", () => {
     // Nickname
     let username = localStorage.nickname ?? prompt("Enter username");
@@ -97,14 +109,14 @@ socket.on("connect", () => {
         socket.on("user-join", (data) => {
             members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
             reloadMemberList();
-            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D`, classes: ["system", "info"], date: Date.now() });
+            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${DOMPurify.sanitize(data.user)}</span> joined the chat :D`, classes: ["system", "info"] });
         });
 
         // Leave
         socket.on("user-leave", (data) => {
             members = members.filter(member => member.session_id !== data.session_id);
             reloadMemberList();
-            createMessage({ content: `<- User <span class="bold-noaa">${DOMPurify.sanitize(data.user)}</span> left the chat :(`, classes: ["system", "error"], date: Date.now() });
+            createMessage({ content: `<- User <span class="bold-noaa">${DOMPurify.sanitize(data.user)}</span> left the chat :(`, classes: ["system", "error"] });
         });
 
         // Message handling
@@ -141,14 +153,18 @@ socket.on("connect", () => {
 
 function handleSend() {
     if (messageBox.value) {
-        if (messageBox.value.startsWith('/a ')) {
-            let all = messageBox.value.replace('/a ', '').split(' ');
-            socket.emit("admin-action", ["a", all]);
-            messageBox.value = "";
+        if (messageBox.value.startsWith("/")) {
+            const args = messageBox.value.slice(1).split(" ");
+            const cmd = COMMANDS.find(c => c.name === args[0]);
+
+            if (cmd) {
+                cmd.exec({ socket, args });
+            }
         } else {
             sendTextMessage(messageBox.value);
-            messageBox.value = "";
         }
+
+        messageBox.value = "";
     }
 }
 
@@ -173,7 +189,7 @@ function changeUsername(username = null) {
         }
     } else {
         if (username.length < 1 || username.length > 18) {
-            createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"], date: Date.now() });
+            createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"] });
         } else {
             document.querySelector(".nickname").innerText = username;
             socket.emit("nick-change", username);
