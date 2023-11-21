@@ -16,10 +16,6 @@ Open a terminal in the folder and run `npm install`.
 
 Execute `npm run start` in your terminal.
 
-# WARNING:
-PLEASE DO NOT USE THIS <strong>YET</strong>!!! a lot is different from normal msgroom, so your bots will probably not work with it.<br>
-Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz)<br>
-Please don't tell us that the code is bad, we will ignore you anyways.
 ### Step 1: Download the package
 Just click on Code then Download ZIP, you normally should already know that,<br>
 if you didn't, why are you here?
