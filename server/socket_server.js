@@ -2,6 +2,7 @@ import {
     writeFileSync,
     readFileSync,
 } from "fs";
+import { sleep } from "../utils.js";
 import crypto from 'crypto';
 
 /** @type {Map<string, {socket: Socket, data: {}}>} Stores connected users */
@@ -28,6 +29,8 @@ export function getUserData(socket) {
     users.forEach(u => {
         if (id === u.data.id) uid += 1;
     });
+
+    console.debug(`USER SID: ${id}-${uid}\n-------------------`);
 
     // Flags
     const flags = [];
@@ -70,18 +73,17 @@ export function handle(io) {
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
             }
-
+            
             if (Object.values(bots).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('bot');
             }
-            
+
             if (Object.values(bans).some(v => v.includes(msgroom_user.id))) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong.</span> " + msgroom_user.id);
                 socket.disconnect();
                 return;
             } else {
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
-
                 socket.emit("message", {
                     type: 'text',
                     content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.',
@@ -91,7 +93,6 @@ export function handle(io) {
                     session_id: '',
                     date: new Date().toUTCString()
                 });
-
                 io.emit("user-join", {
                     user: msgroom_user.user,
                     color: msgroom_user.color,
@@ -113,6 +114,7 @@ export function handle(io) {
                     socket.emit("change-user-success", false);
                 } else {
                     socket.emit("change-user-success", true);
+                    let user = null;
                     io.emit("nick-changed", {
                         oldUser: msgroom_user.user,
                         newUser: username,
@@ -129,6 +131,7 @@ export function handle(io) {
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
                 let bans = JSON.parse(await readFileSync("./database/banned.json"));
                 log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
+
                 if (args[0] === "a") {
                     if (args[1] === "help") { {
                         if (authed) {
@@ -205,7 +208,6 @@ IDs can be obtained from /list.`
                         if (args[2]) {
                             let targetUser = {data: null, socket: null}
                             targetUser = [...users.values()].find(u => u.data.id === args[2]);
-
                             if (!targetUser) {
                                 socket.emit("sys-message", {
                                     type: "error",
@@ -247,9 +249,10 @@ IDs can be obtained from /list.`
                             });
                         }
                     }
+
+                    log += "\n-------------------";
+                    console.log(log);
                 }
-                log += "\n-------------------";
-                console.log(log);
             });
 
             // Message handling

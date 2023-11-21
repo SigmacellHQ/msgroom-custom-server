@@ -6,7 +6,6 @@ const nicknameBtn = document.querySelector(".nickname");
 const messageBox = document.querySelector(".message-box");
 const messageList = document.querySelector(".messages");
 const memberList = document.querySelector(".members>.list");
-
 // Commands
 const COMMANDS = [
     {
@@ -18,11 +17,9 @@ const COMMANDS = [
         }
     }
 ]
-
 // Config
 const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
 let members = [];
-
 /**
  * Sends a text message.
  * @param {string} text The text to send.
@@ -49,9 +46,7 @@ function createMessage(params) {
         date: new Date().toUTCString(),
         ...params,
     }
-
     console.debug(opts);
-
     const msg = document.createElement("div");
     msg.className = "message";
     msg.classList.add(...opts.classes);
@@ -67,11 +62,11 @@ function createMessage(params) {
         </div>
     `;
 
+    //TODO: Context menu
     msg.addEventListener('contextmenu', e => {
         e.preventDefault();
         if(params.id) createMessage({ content: "User ID: " + params.id, classes: ["system", "info"] });
     });
-
     messageList.appendChild(msg);
     messageList.scrollTo(0, messageList.scrollHeight);
 }
@@ -81,7 +76,6 @@ function createMessage(params) {
  */
 function reloadMemberList() {
     memberList.innerHTML = "";
-
     members.forEach(member => {
         memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
     });
@@ -99,12 +93,10 @@ socket.on("connect", () => {
         localStorage.nickname = username;
     }
     document.querySelector(".nickname").innerText = username;
-
     socket.on("online", (memberList) => {
         members = memberList;
         reloadMemberList();
     })
-
     // Authentication
     socket.emit("auth", { user: username });
 
@@ -137,7 +129,6 @@ socket.on("connect", () => {
         socket.on("sys-message", ({ content, type }) => {
             createMessage({ content, classes: ["system", type] });
         });
-
         // Nickname change
         socket.on("nick-changed", (data) => {
             members = members.map(member => {
@@ -156,16 +147,12 @@ socket.on("connect", () => {
             changeUsername();
         });
     });
-
-
 });
-
 function handleSend() {
     if (messageBox.value) {
         if (messageBox.value.startsWith("/")) {
             const args = messageBox.value.slice(1).split(" ");
             const cmd = COMMANDS.find(c => c.name === args[0]);
-
             if (cmd) {
                 cmd.exec({ socket, args });
             }
@@ -180,7 +167,6 @@ function handleSend() {
         messageBox.value = "";
     }
 }
-
 // Event listeners for message sending
 sendBtn.addEventListener("click", handleSend);
 messageBox.addEventListener("keydown", (e) => {
@@ -193,6 +179,7 @@ messageBox.addEventListener("keydown", (e) => {
 socket.on('disconnect', () => {
     // location.reload();
     createMessage({ content: "You have been disconnected from the server. [Click here to reconnect](/)", classes: ["system", "error"] });
+    location.reload();
 });
 
 function changeUsername(username = null) {
@@ -207,7 +194,7 @@ function changeUsername(username = null) {
         } else {
             document.querySelector(".nickname").innerText = username;
             socket.emit("change-user", username);
-            socket.on("change-user-success", (res) => {
+            socket.on("nick-changed-success", (res) => {
                 if (!res) {
                     changeUsername();
                 } else {
