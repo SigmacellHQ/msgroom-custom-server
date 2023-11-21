@@ -2,7 +2,7 @@
 
 A custom Windows 96 MsgRoom Server
 
-Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz). Please don't tell us that the code is bad, we will ignore you anyways.
+Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz). Feel free to make pull requests!
 
 ## Step 1: Download the package
 
