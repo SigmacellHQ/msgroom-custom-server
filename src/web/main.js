@@ -18,8 +18,7 @@ const COMMANDS = [
     }
 ]
 // Config
-// const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
-const API_URL = `http://${window.location.hostname}:${window.location.port}`;
+const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
 let members = [];
 /**
  * Sends a text message.
