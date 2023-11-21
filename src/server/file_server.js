@@ -74,6 +74,9 @@ export function handle(http) {
     let fetchUrl = req.url;
     let url = fetchUrl;
 
+    if (url.startsWith(process.env.API_ENDPOINT))
+      return; // Return if trying to access API
+
     var GET = {};
     var POST = {};
     var GETtemp = "";
@@ -140,19 +143,19 @@ export function handle(http) {
     let fileUrl = null;
 
     // e.g. /hello => /web/hello
-    if (existsSync(`./web${url}`) && lstatSync(`./web${url}`).isFile())
-      fileUrl = `./web${url}`;
+    if (existsSync(`./src/web${url}`) && lstatSync(`./src/web${url}`).isFile())
+      fileUrl = `./src/web${url}`;
 
     // e.g. /hello.html => /web/hello.html
-    else if (existsSync(`./web${url}.html`) && lstatSync(`./web${url}.html`).isFile())
-      fileUrl = `./web${url}.html`;
+    else if (existsSync(`./src/web${url}.html`) && lstatSync(`./src/web${url}.html`).isFile())
+      fileUrl = `./src/web${url}.html`;
 
     // e.g. /hello.htm => /web/hello.htm
-    else if (existsSync(`./web${url}.htm`) && lstatSync(`./web${url}.htm`).isFile())
-      fileUrl = `./web${url}.htm`;
+    else if (existsSync(`./src/web${url}.htm`) && lstatSync(`./src/web${url}.htm`).isFile())
+      fileUrl = `./src/web${url}.htm`;
 
     // e.g /hello => redirect to /web/hello/
-    else if (!url.endsWith("/") && existsSync(`./web${url}/`) && lstatSync(`./web${url}/`).isDirectory()) {
+    else if (!url.endsWith("/") && existsSync(`./src/web${url}/`) && lstatSync(`./src/web${url}/`).isDirectory()) {
       console.debug(`Redirecting ${url} to ${url}/`);
       res.writeHead(301, { "Location": `${url}/` });
       res.end();
@@ -160,42 +163,42 @@ export function handle(http) {
     }
 
     // e.g. /hello/ => /web/hello/index.html
-    else if (existsSync(`./web${url}index.html`) && lstatSync(`./web${url}index.html`).isFile())
-      fileUrl = `./web${url}index.html`;
+    else if (existsSync(`./src/web${url}index.html`) && lstatSync(`./src/web${url}index.html`).isFile())
+      fileUrl = `./src/web${url}index.html`;
 
     // Define default values
     let code = 404;
     let content = getHttpError(404);
     let extension = "html";
 
-    if (fileUrl === './web/admin/index.html' || fileUrl === './web/admin/logged.html') {
+    if (fileUrl === './src/web/admin/logged.html' || fileUrl === './src/web/admin/logged.html') {
       let key = null;
-      url = "./web/admin/index.html";
+      url = "./src/web/admin/index.html";
 
       if (GET['passkey']) {
         key = GET['passkey'];
       } else if ('passkey' in cookies) {
         key = cookies['passkey']
       }
-      if (key) {
-        let errored = false;
-        let keys = null;
-        try {
-          keys = JSON.parse(await readFileSync('./database/adminkeys.json'));
-        } catch {
-          errored = true;
-        }
-        if (!errored) {
-          for (var i = 0; i < keys.length; i++) {
-            if (keys[i] === key) {
-              url === "./web/admin/logged.html";
-              break;
-            }
-          }
-        }
-      }
-      content = readFileSync(fileUrl);
+      if (key === process.env.ADMIN_SECRET) url = "./src/web/admin/logged.html";
+      content = readFileSync(url);
       res.writeHead(200, undefined, { "Content-Type": "text/html" });
+      res.end(content);
+      return;
+    } else if(fileUrl === './src/web/admin/logged.js') {
+      let key = null;
+      if (GET['passkey']) {
+        key = GET['passkey'];
+      } else if ('passkey' in cookies) {
+        key = cookies['passkey']
+      }
+      if (key !== process.env.ADMIN_SECRET) {
+        res.writeHead(200, undefined, { "Content-Type": "text/html" });
+        res.end("\"You are not logged in........\"");
+        return;
+      };
+      content = readFileSync(fileUrl);
+      res.writeHead(200, undefined, { "Content-Type": "text/javascript" });
       res.end(content);
       return;
     }
@@ -221,7 +224,7 @@ export function handle(http) {
 
     log += "\n-------------------";
 
-    console.log(log);
+    // console.log(log);
 
     // Define Headers
     const mimeMap = new Map([

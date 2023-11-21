@@ -2,7 +2,7 @@
 
 A custom Windows 96 MsgRoom Server
 
-Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz). Please don't tell us that the code is bad, we will ignore you anyways.
+Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz). Feel free to make pull requests!
 
 ## Step 1: Download the package
 
@@ -16,10 +16,6 @@ Open a terminal in the folder and run `npm install`.
 
 Execute `npm run start` in your terminal.
 
-# WARNING:
-PLEASE DO NOT USE THIS <strong>YET</strong>!!! a lot is different from normal msgroom, so your bots will probably not work with it.<br>
-Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz)<br>
-Please don't tell us that the code is bad, we will ignore you anyways.
 ### Step 1: Download the package
 Just click on Code then Download ZIP, you normally should already know that,<br>
 if you didn't, why are you here?
@@ -28,13 +24,16 @@ Open a terminal in the folder, and run ```npm i```<br>
 ### Step 3: Run the package
 If you want the default port (3030), on your terminal, run ```node index.js```<br>
 If you want a custom port, on your terminal, run ```node index.js (YOUR PORT HERE)```
-### (Optional) Step 4: Share with friends
+### Step 4: Set up .env
+Copy .env.example and paste it, then rename the pasted file to ".env".<br>
+You can edit .env to your liking.
+### (Optional) Step 5: Share with friends
 If you want to share with friends, we recommend using ngrok:
 - Run `ngrok http 3030` in your terminal if you want to use the default port.
 - Run `ngrok http (YOUR PORT HERE)` in your terminal if you have a custom port.
 - You also need an ngrok account, which you can set up [here](https://ngrok.com/).
 ## Done!
-You have successfully installed MsgRoom Custom Server! The terminal will display the URL to visit your custom server.
+You have successfully installed MsgRoom Custom Server! The terminal will display the URL to visit your custom server.<br>
 If you want to share with friends, we recommand ngrok, on your terminal, run ```ngrok http 3030```<br>
 Or if you did a custom port, run ```ngrok http (YOUR PORT HERE)```<br>
 You also need an ngrok account, setup ngrok [here](https://ngrok.com/)

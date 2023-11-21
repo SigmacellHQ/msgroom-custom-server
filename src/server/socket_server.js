@@ -15,13 +15,28 @@ export function getIDsFromSocket(socket) {
     return id;
 }
 
+export function randID() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+    const charactersLength = characters.length;
+  
+    for(let i = 0; i < 32; i++) {
+        id += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+  
+    return id.slice(0, 32); // to be sure
+}
+
 /**
  * Get user data
  * @param {import("socket.io").Socket} socket
  */
 export function getUserData(socket) {
-    const id = getIDsFromSocket(socket);
-
+    let id = getIDsFromSocket(socket);
+    if(process.env.RAND_IDS === "true") {
+        id = randID();
+    }
+    
     let user = `anon${Math.random().toString().substring(2, 5).toUpperCase()}`;
 
     // Session ID
@@ -29,8 +44,6 @@ export function getUserData(socket) {
     users.forEach(u => {
         if (id === u.data.id) uid += 1;
     });
-
-    console.debug(`USER SID: ${id}-${uid}\n-------------------`);
 
     // Flags
     const flags = [];
@@ -44,7 +57,62 @@ export function getUserData(socket) {
     };
 }
 
-export function handle(io) {
+export function handle(io, http) {
+    /*const API_URL = process.env.API_ENDPOINT ?? "/api";
+    http.on("request", async (req, res) => {
+        let POST = {};
+        let content = {
+            success: false
+        };
+        if (req.url === API_URL + "/message/send" && req.method === "POST") {
+            req.on('data', (chunk) => {
+                if (chunk) {
+                    POST += chunk.toString();
+                }
+            });
+    
+            req.on('end', () => {
+            let pairs = POST.split("&");
+            let obj = {};
+            pairs.forEach(pair => {
+                let value = pair.split("=");
+                obj[value[0]] = value[1] || '';
+            });
+            POST = obj;
+            });
+            io.emit("message", {
+                type: 'text',
+                content: null,
+                user: 'System',
+                color: 'rgb(0, 0, 128)',
+                id: '',
+                session_id: '',
+                date: new Date().toUTCString(),
+                ...POST
+            });
+            content.success = true;
+            res.writeHead(200, undefined, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(content));
+            return;
+        } else {
+            res.writeHead(200, undefined, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(content));
+            return;
+        }
+    });*/
+    if(process.env.AUTOMABOT_MSG && parseInt(process.env.AUTOMABOT_MSG_MS) !== 0) {
+        setInterval(() => {
+            io.emit("message", {
+                type: 'text',
+                content: process.env.AUTOMABOT_MSG,
+                user: 'Automabot',
+                color: 'rgb(0, 0, 128)',
+                id: '',
+                session_id: '',
+                date: new Date().toUTCString()
+            });
+        }, parseInt(process.env.AUTOMABOT_MSG_MS));
+    }
     /**
      * Waits for a connection from a client
      */
@@ -66,9 +134,9 @@ export function handle(io) {
                 msgroom_user.user = auth.user;
             }
 
-            let admins = JSON.parse(await readFileSync("./database/admins.json"));
-            let bots = JSON.parse(await readFileSync("./database/bots.json"));
-            let bans = JSON.parse(await readFileSync("./database/banned.json"));
+            let admins = JSON.parse(await readFileSync("./src/database/admins.json"));
+            let bots = JSON.parse(await readFileSync("./src/database/bots.json"));
+            let bans = JSON.parse(await readFileSync("./src/database/banned.json"));
 
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
@@ -100,6 +168,7 @@ export function handle(io) {
                     session_id: msgroom_user.session_id,
                     flags: msgroom_user.flags,
                 });
+                console.log("-> User " + msgroom_user.user, "(" + msgroom_user.session_id + ") joined the chat :D");
             }
 
             let resetMessagesPerSecond = setInterval(() => {
@@ -121,15 +190,16 @@ export function handle(io) {
                         id: msgroom_user.id,
                         session_id: msgroom_user.session_id,
                     });
+                    console.log("User", msgroom_user.user, "(" + msgroom_user.session_id + ") changed their username to", username);
                     msgroom_user.user = username;
                 }
             });
 
             socket.on("admin-action", async ({ args }) => {
                 let log = "Admin Action";
-                let admins = JSON.parse(await readFileSync("./database/admins.json"));
+                let admins = JSON.parse(await readFileSync("./src/database/admins.json"));
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
-                let bans = JSON.parse(await readFileSync("./database/banned.json"));
+                let bans = JSON.parse(await readFileSync("./src/database/banned.json"));
                 log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
 
                 if (args[0] === "a") {
@@ -167,7 +237,7 @@ IDs can be obtained from /list.`
 
                         if (keySet) {
                             admins[keySet[0]].push(msgroom_user.id);
-                            writeFileSync("./database/admins.json", JSON.stringify(admins));
+                            writeFileSync("./src/database/admins.json", JSON.stringify(admins));
 
                             socket.emit("sys-message", {
                                 type: "info",
@@ -216,7 +286,7 @@ IDs can be obtained from /list.`
                                 return;
                             } else {
                                 bans.push(targetUser.id);
-                                writeFileSync("./database/banned.json", JSON.stringify(bans));
+                                writeFileSync("./src/database/banned.json", JSON.stringify(bans));
                                 targetUser.socket.disconnect();
                                 socket.emit("sys-message", {
                                     type: "info",
@@ -237,7 +307,7 @@ IDs can be obtained from /list.`
                                     break;
                                 }
                             }
-                            writeFileSync("./database/banned.json", JSON.stringify(bans));
+                            writeFileSync("./src/database/banned.json", JSON.stringify(bans));
                             socket.emit("sys-message", {
                                 type: "info",
                                 content: "User unbanned"
@@ -269,6 +339,7 @@ IDs can be obtained from /list.`
                             session_id: msgroom_user.session_id,
                             date: new Date().toUTCString()
                         });
+                        console.log(msgroom_user.user, "(" + msgroom_user.session_id + "):", data.content);
                     }
                 } else {
                     socket.emit("sys-message", {
@@ -288,6 +359,7 @@ IDs can be obtained from /list.`
                     id: msgroom_user.id,
                     session_id: msgroom_user.session_id,
                 });
+                console.log("<- User", msgroom_user.user, "(" + msgroom_user.session_id + ") left the chat :(");
             });
 
             socket.emit("online", [...users.values()].map(u => u.data));

@@ -1,4 +1,4 @@
-import { sleep, formatUTCTime, fixXSS } from "./js/utils.js";
+import { sleep, fixXSS } from "./js/utils.js";
 
 // Elements
 const sendBtn = document.querySelector(".send");
@@ -52,7 +52,7 @@ function createMessage(params) {
     msg.classList.add(...opts.classes);
     msg.innerHTML = `
         <div class="sig">
-            <span class="time">${formatUTCTime(opts.date)}</span>
+            <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
             <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${fixXSS(opts.user)}</span>
             ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
         </div>

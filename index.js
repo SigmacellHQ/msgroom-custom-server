@@ -1,11 +1,9 @@
-//@ts-check
 import "dotenv/config";
-import express from "express";
 import { createServer as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { handle as handleFileRequests } from "./server/file_server.js";
-import { handle as handleSIORequests } from "./server/socket_server.js";
-import { handle as handleAdminAPI } from "./server/admin_api.js";
+import { handle as handleFileRequests } from "./src/server/file_server.js";
+import { handle as handleSIORequests } from "./src/server/socket_server.js";
+import { handle as handleAdminAPI } from "./src/server/admin_api.js";
 
 const http = HTTPServer();
 const io = new SocketIOServer(http, {
@@ -14,7 +12,7 @@ const io = new SocketIOServer(http, {
 
 handleAdminAPI(http);
 handleFileRequests(http);
-handleSIORequests(io);
+handleSIORequests(io, http);
 
 const args = process.argv;
 const PORT = parseInt(args[2]) || 3030; // 0: node, 1: index.js, 2: port
