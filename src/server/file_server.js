@@ -210,7 +210,7 @@ export function handle(http) {
       extension = fileUrl.slice(fileUrl.lastIndexOf(".") + 1);
     }
 
-    let log = req.method + " " + url + " from " + req.socket.request.headers['cf-connecting-ip'] || req.socket.conn.remoteAddress;
+    let log = req.method + " " + url + " from " + req.socket.remoteAddress;
 
     if (GET) {
       log += "\nGET: " + JSON.stringify(GET);
