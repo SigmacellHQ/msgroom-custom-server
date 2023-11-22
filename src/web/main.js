@@ -58,9 +58,10 @@ function createMessage(params) {
         </div>
 
         <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-            ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
+            ${twemoji.parse(fixXSS(opts.content))}
         </div>
     `;
+    // ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
 
     //TODO: Context menu
     msg.addEventListener('contextmenu', e => {

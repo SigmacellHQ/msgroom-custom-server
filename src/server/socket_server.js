@@ -9,7 +9,7 @@ import crypto from 'crypto';
 const users = new Map();
 
 export function getIDsFromSocket(socket) {
-    const hash = crypto.createHash('md5').update(socket.conn.remoteAddress).digest('hex').toUpperCase();
+    const hash = crypto.createHash('md5').update(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress).digest('hex').toUpperCase();
     const id = hash.slice(0, 32);
 
     return id;
@@ -126,6 +126,7 @@ export function handle(io, http) {
 
             const msgroom_user = getUserData(socket);
             users.set(msgroom_user.session_id, { socket: socket, data: msgroom_user });
+            msgroom_user.socket.ipAddress = socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress;
 
             if (
                 !auth.user ||
@@ -280,7 +281,7 @@ IDs can be obtained from /list.`
                                 `User status:`,
                                 `ID: <span class="bold-noaa">${targetUser.data.id}</span>`,
                                 `All Flags: <span class="bold-noaa">${JSON.stringify(targetUser.data.flags)}</span>`,
-                                `IP: <span class="bold-noaa">${targetUser.socket.conn.remoteAddress}</span>`
+                                `IP: <span class="bold-noaa">${targetUser.socket.ipAddress}</span>`
                             ].join("<br />")
                         });
                     } else if (args[1] === "ban") {
