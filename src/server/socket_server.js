@@ -125,8 +125,7 @@ export function handle(io, http) {
             sentUsername = true;
 
             const msgroom_user = getUserData(socket);
-            users.set(msgroom_user.session_id, { socket: socket, data: msgroom_user });
-            msgroom_user.socket.ipAddress = socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress;
+            users.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
 
             if (
                 !auth.user ||
@@ -281,7 +280,7 @@ IDs can be obtained from /list.`
                                 `User status:`,
                                 `ID: <span class="bold-noaa">${targetUser.data.id}</span>`,
                                 `All Flags: <span class="bold-noaa">${JSON.stringify(targetUser.data.flags)}</span>`,
-                                `IP: <span class="bold-noaa">${targetUser.socket.ipAddress}</span>`
+                                `IP: <span class="bold-noaa">${targetUser.ip}</span>`
                             ].join("<br />")
                         });
                     } else if (args[1] === "ban") {
