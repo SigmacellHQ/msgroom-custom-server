@@ -50,18 +50,31 @@ function createMessage(params) {
     const msg = document.createElement("div");
     msg.className = "message";
     msg.classList.add(...opts.classes);
-    msg.innerHTML = `
-        <div class="sig">
-            <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
-            <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${fixXSS(opts.user)}</span>
-            ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
-        </div>
+    if(params.id) {
+        msg.innerHTML = `
+            <div class="sig">
+                <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
+                <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${fixXSS(opts.user)}</span>
+                ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
+            </div>
 
-        <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-            ${twemoji.parse(fixXSS(opts.content))}
-        </div>
-    `;
-    // ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
+            <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
+                ${twemoji.parse(fixXSS(opts.content))}
+            </div>
+        `;
+    } else {
+        msg.innerHTML = `
+            <div class="sig">
+                <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
+                <span class="author" ${opts.color ? `style="background-color: ${opts.color};"` : ""}>${fixXSS(opts.user)}</span>
+                ${opts.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}
+            </div>
+
+            <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
+                ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
+            </div>
+        `;
+    }
 
     //TODO: Context menu
     msg.addEventListener('contextmenu', e => {
