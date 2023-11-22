@@ -50,7 +50,7 @@ function createMessage(params) {
     const msg = document.createElement("div");
     msg.className = "message";
     msg.classList.add(...opts.classes);
-    if(opts.classes.includes("system")) {
+    if(!opts.classes.includes("system")) {
         msg.innerHTML = `
             <div class="sig">
                 <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
