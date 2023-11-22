@@ -32,23 +32,16 @@ If you want to share with friends, we recommend using ngrok:
 - Run `ngrok http 3030` in your terminal if you want to use the default port.
 - Run `ngrok http (YOUR PORT HERE)` in your terminal if you have a custom port.
 - You also need an ngrok account, which you can set up [here](https://ngrok.com/).
-## Done!
-You have successfully installed MsgRoom Custom Server! The terminal will display the URL to visit your custom server.<br>
-If you want to share with friends, we recommand ngrok, on your terminal, run ```ngrok http 3030```<br>
-Or if you did a custom port, run ```ngrok http (YOUR PORT HERE)```<br>
-You also need an ngrok account, setup ngrok [here](https://ngrok.com/)
 ### Done!
 You successfully installed MsgRoom Custom Server!<br>
 On the terminal, you should see the Arguments, and the url to visit your custom server.<br>
 **Thank you for using our custom server!**
 ## How to add bots
-*Note: this is temporary, a special MRCSAPI will release soon.*
-The bot owner needs to make some adjustments, but here's how: \
-Go to the source code of the library you want to use, then try finding `io()` or `socket()`. \
-When you found it, it should be like `io(URL)`. \
-Change it to: `io("http://yourURL.real:port", { transports: ['websocket'] })` \
-If the port is 80, don't put `:port`, if you have https, put https, its easy.
-**Congrats! 🎉** You successfully made your lib work with MRCS.
+This is up to the bot api owner to add, but if its like msgroom-orm, here's how to do it \
+Your client should look like ```const client = new Client("TestBot", "!");``` \
+Now, it's really easy, just add a new argument to Client with an object containing the arguments \
+If you don't understand anything, just do it like this: ```const client = new Client("TestBot", "!", {server: "wss://yourURL.com:port"});``` (If you don't have a port, don't put one) \
+**Congrats! 🎉** Your bot should now work with MRCS!
 ## How to give yourself staff and perform mod actions
 1. Go to .env and edit the ADMIN_SECRET value
 2. Go to /admin and put the admin secret

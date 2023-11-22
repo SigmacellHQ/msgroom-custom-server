@@ -6,9 +6,7 @@ import { handle as handleSIORequests } from "./src/server/socket_server.js";
 import { handle as handleAdminAPI } from "./src/server/admin_api.js";
 
 const http = HTTPServer();
-const io = new SocketIOServer(http, {
-    path: "/socket.io",
-});
+const io = new SocketIOServer(http);
 
 handleAdminAPI(http);
 handleFileRequests(http);

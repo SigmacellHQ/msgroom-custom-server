@@ -127,8 +127,8 @@ export function handle(http) {
     }
 
     if (url === "/socket.io/") {
-      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-      res.end();
+      // res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+      // res.end();
       return;
     }
 

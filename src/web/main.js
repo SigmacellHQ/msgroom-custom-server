@@ -1,4 +1,4 @@
-import { sleep, fixXSS } from "./js/utils.js";
+import { sleep, fixXSS, contextMenu } from "./js/utils.js";
 
 // Elements
 const sendBtn = document.querySelector(".send");
@@ -46,7 +46,7 @@ function createMessage(params) {
         date: new Date().toUTCString(),
         ...params,
     }
-    console.debug(opts);
+    
     const msg = document.createElement("div");
     msg.className = "message";
     msg.classList.add(...opts.classes);
@@ -58,14 +58,14 @@ function createMessage(params) {
         </div>
 
         <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-            ${DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>")}
+            ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
         </div>
     `;
 
     //TODO: Context menu
     msg.addEventListener('contextmenu', e => {
         e.preventDefault();
-        if(params.id) createMessage({ content: "User ID: " + params.id, classes: ["system", "info"] });
+        if(params.id) contextMenu(params.id);
     });
     messageList.appendChild(msg);
     messageList.scrollTo(0, messageList.scrollHeight);
@@ -81,18 +81,21 @@ function reloadMemberList() {
     });
 }
 
+var errored = false;
+
 // Socket
-const socket = io(API_URL, { transports: ["websocket"] });
+const socket = io(API_URL);
 window.socket = socket;
 socket.on("connect", () => {
     // Nickname
-    let username = localStorage.nickname ?? prompt("Enter username");
+    let username = localStorage.getItem("nickname") ?? prompt("Enter username");
     if (!username || username.length < 1 || username.length > 16) {
         username = "anon" + Math.floor(Math.random() * 99) + 1;
     } else {
-        localStorage.nickname = username;
+        localStorage.setItem("nickname", username);
     }
     document.querySelector(".nickname").innerText = username;
+    console.log("Username is", username);
     socket.on("online", (memberList) => {
         members = memberList;
         reloadMemberList();
@@ -176,10 +179,20 @@ messageBox.addEventListener("keydown", (e) => {
     }
 })
 
+socket.on("connect_error", (err) => {
+    if(!errored) {
+        errored = true;
+        // location.reload();
+        console.log(err);
+        createMessage({ content: "You have been disconnected from the server. Reason can be found on console. [Click here to reconnect](/)", classes: ["system", "error"] });
+    }
+});
 socket.on('disconnect', () => {
-    // location.reload();
-    createMessage({ content: "You have been disconnected from the server. [Click here to reconnect](/)", classes: ["system", "error"] });
-    location.reload();
+    if(!errored) {
+        errored = true;
+        // location.reload();
+        createMessage({ content: "You have been disconnected from the server. [Click here to reconnect](/)", classes: ["system", "error"] });
+    }
 });
 
 function changeUsername(username = null) {

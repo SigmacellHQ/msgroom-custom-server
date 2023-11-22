@@ -180,9 +180,9 @@ export function handle(io, http) {
              */
             socket.on("change-user", (username) => {
                 if (username.length < 1 || username.length > 16) {
-                    socket.emit("change-user-success", false);
+                    socket.emit("nick-changed-success", false);
                 } else {
-                    socket.emit("change-user-success", true);
+                    socket.emit("nick-changed-success", true);
                     let user = null;
                     io.emit("nick-changed", {
                         oldUser: msgroom_user.user,
@@ -212,11 +212,11 @@ export function handle(io, http) {
 /a status [id]: Status of user id, otherwise shows your own<br>
 /a ban &lt;id&gt;: ban a user<br>
 /a unban &lt;id&gt;: unban a user<br>
------ NOT DONE -----
+----- NOT DONE -----<br>
 /a shadowban &lt;id&gt;: shadowban a user<br>
 /a shadowunban &lt;id&gt;: shadowunban a user<br>
 /a whitelist &lt;id&gt;: whitelist a user from the IP check<br>
-/a disconnect &lt;id&gt;: disconnect a user<br><br>
+/a disconnect &lt;id&gt;: disconnect a user -- except this, its done<br><br>
 IDs can be obtained from /list.`
                             });
                         }
@@ -285,7 +285,7 @@ IDs can be obtained from /list.`
                                 });
                                 return;
                             } else {
-                                bans.push(targetUser.id);
+                                bans.push(targetUser.data.id);
                                 writeFileSync("./src/database/banned.json", JSON.stringify(bans));
                                 targetUser.socket.disconnect();
                                 socket.emit("sys-message", {
@@ -303,7 +303,7 @@ IDs can be obtained from /list.`
                         if (args[2]) {
                             for(var i = 0; i < bans.length; i++) {
                                 if(args[2] === bans[i]) {
-                                    bans[i].splice(i, 1);
+                                    bans.splice(i, 1);
                                     break;
                                 }
                             }
@@ -312,6 +312,29 @@ IDs can be obtained from /list.`
                                 type: "info",
                                 content: "User unbanned"
                             });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "disconnect") {
+                        if (args[2]) {
+                            let targetUser = {data: null, socket: null}
+                            targetUser = [...users.values()].find(u => u.data.id === args[2]);
+                            if (!targetUser) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "User doesn't exist"
+                                });
+                                return;
+                            } else {
+                                targetUser.socket.disconnect();
+                                socket.emit("sys-message", {
+                                    type: "info",
+                                    content: "User disconnected"
+                                });
+                            }
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
