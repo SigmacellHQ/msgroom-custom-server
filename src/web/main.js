@@ -84,7 +84,9 @@ function reloadMemberList() {
 var errored = false;
 
 // Socket
-const socket = io(API_URL);
+const socket = io(API_URL, {
+    reconnection: false
+});
 window.socket = socket;
 socket.on("connect", () => {
     // Nickname

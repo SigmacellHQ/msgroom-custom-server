@@ -127,7 +127,12 @@ export function handle(io, http) {
             const msgroom_user = getUserData(socket);
             users.set(msgroom_user.session_id, { socket: socket, data: msgroom_user });
 
-            if (!auth.user || auth.user.length < 1 || auth.user.length > 16) {
+            if (
+                !auth.user ||
+                auth.user.length < 1 ||
+                auth.user.length > 16 ||
+                auth.user === "System"
+            ) {
                 socket.emit("auth-error", "This nickname is not allowed.");
                 return;
             } else {
@@ -179,7 +184,11 @@ export function handle(io, http) {
              * On message reception, handle it
              */
             socket.on("change-user", (username) => {
-                if (username.length < 1 || username.length > 16) {
+                if (
+                    username.length < 1 ||
+                    username.length > 16 ||
+                    username === "System"
+                ) {
                     socket.emit("nick-changed-success", false);
                 } else {
                     socket.emit("nick-changed-success", true);
@@ -276,18 +285,24 @@ IDs can be obtained from /list.`
                         });
                     } else if (args[1] === "ban") {
                         if (args[2]) {
-                            let targetUser = {data: null, socket: null}
-                            targetUser = [...users.values()].find(u => u.data.id === args[2]);
-                            if (!targetUser) {
+                            let targetUsers = {};
+                            users.forEach((value, key) => {
+                                if(value.data.id === args[2]) {
+                                    targetUsers[value.data.session_id] = value;
+                                }
+                            });
+                            if (targetUsers.length < 1) {
                                 socket.emit("sys-message", {
                                     type: "error",
                                     content: "User doesn't exist"
                                 });
                                 return;
                             } else {
-                                bans.push(targetUser.data.id);
-                                writeFileSync("./src/database/banned.json", JSON.stringify(bans));
-                                targetUser.socket.disconnect();
+                                Object.keys(targetUsers).forEach(key => {
+                                    bans.push(targetUsers[key].data.id);
+                                    writeFileSync("./src/database/banned.json", JSON.stringify(bans));
+                                    targetUsers[key].socket.disconnect();
+                                });
                                 socket.emit("sys-message", {
                                     type: "info",
                                     content: "User banned"
@@ -320,16 +335,30 @@ IDs can be obtained from /list.`
                         }
                     } else if (args[1] === "disconnect") {
                         if (args[2]) {
-                            let targetUser = {data: null, socket: null}
-                            targetUser = [...users.values()].find(u => u.data.id === args[2]);
-                            if (!targetUser) {
+                            let targetUsers = {};
+                            if(args[2].length !== 32) {
+                                users.forEach((value, key) => {
+                                    if(value.data.session_id === args[2]) {
+                                        targetUsers[value.data.session_id] = value;
+                                    }
+                                });
+                            } else {
+                                users.forEach((value, key) => {
+                                    if(value.data.id === args[2]) {
+                                        targetUsers[value.data.session_id] = value;
+                                    }
+                                });
+                            }
+                            if (targetUsers.length < 1) {
                                 socket.emit("sys-message", {
                                     type: "error",
                                     content: "User doesn't exist"
                                 });
                                 return;
                             } else {
-                                targetUser.socket.disconnect();
+                                Object.keys(targetUsers).forEach(key => {
+                                    targetUsers[key].socket.disconnect();
+                                });
                                 socket.emit("sys-message", {
                                     type: "info",
                                     content: "User disconnected"
