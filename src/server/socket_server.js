@@ -185,14 +185,10 @@ export function handle(io, http) {
              */
             socket.on("change-user", (username) => {
                 if (
-                    username.length < 1 ||
-                    username.length > 16 ||
-                    username === "System"
+                    username.length > 1 ||
+                    username.length < 16 ||
+                    username !== "System"
                 ) {
-                    socket.emit("nick-changed-success", false);
-                } else {
-                    socket.emit("nick-changed-success", true);
-                    let user = null;
                     io.emit("nick-changed", {
                         oldUser: msgroom_user.user,
                         newUser: username,

@@ -98,6 +98,7 @@ function reloadMemberList() {
 var errored = false;
 
 // Socket
+var user = null;
 const socket = io(API_URL, {
     reconnection: false
 });
@@ -126,6 +127,9 @@ socket.on("connect", () => {
     socket.once("auth-complete", async (userId, sessionId) => {
         // Join
         socket.on("user-join", (data) => {
+            if(!user) {
+                user = data;
+            }
             members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
             reloadMemberList();
             createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${fixXSS(data.user)}</span> joined the chat :D`, classes: ["system", "info"] });
@@ -212,22 +216,36 @@ socket.on('disconnect', () => {
 });
 
 function changeUsername(username = null) {
+    // Checking if there isn't an username
     if (!username) {
+        // There isn't a username, ask one.
         let newUsername = prompt("Enter a new username");
         if (newUsername) {
-            changeUsername(newUsername);
+            changeUsername(newUsername); // Recall the function
         }
     } else {
-        if (username.length < 1 || username.length > 18) {
+        // There is a username, checking if username is less than 1 character, bigger than 16 characters or "System"
+        if (username.length < 1 || username.length > 16 || username === "System") {
             createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"] });
         } else {
-            document.querySelector(".nickname").innerText = username;
+            // Emit to server that we changed our username
             socket.emit("change-user", username);
-            socket.on("nick-changed-success", (res) => {
-                if (!res) {
-                    changeUsername();
-                } else {
-                    localStorage.setItem("nickname", username);
+
+            // Setting default variables and setTimeout
+            let changedSuccess = false;
+            let checkTimeout = setTimeout(() => {
+                clearTimeout(checkTimeout);
+                changeUsername();
+            }, 3000);
+
+            // We received a nick change
+            socket.on("nick-changed", (res) => {
+                // Checking if it's us
+                if(!changedSuccess && user.session_id === res.session_id) {
+                    // It's us, clear timeout and set success to true. Also change nickname on html
+                    clearTimeout(checkTimeout);
+                    changedSuccess = true;
+                    document.querySelector(".nickname").innerText = username;
                 }
             });
         }
