@@ -19,11 +19,11 @@ export function randID() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = '';
     const charactersLength = characters.length;
-  
-    for(let i = 0; i < 32; i++) {
+
+    for (let i = 0; i < 32; i++) {
         id += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-  
+
     return id.slice(0, 32); // to be sure
 }
 
@@ -33,10 +33,10 @@ export function randID() {
  */
 export function getUserData(socket) {
     let id = getIDsFromSocket(socket);
-    if(process.env.RAND_IDS === "true") {
+    if (process.env.RAND_IDS === "true") {
         id = randID();
     }
-    
+
     let user = `anon${Math.random().toString().substring(2, 5).toUpperCase()}`;
 
     // Session ID
@@ -100,7 +100,7 @@ export function handle(io, http) {
             return;
         }
     });*/
-    if(process.env.AUTOMABOT_MSG && parseInt(process.env.AUTOMABOT_MSG_MS) !== 0) {
+    if (process.env.AUTOMABOT_MSG && parseInt(process.env.AUTOMABOT_MSG_MS) !== 0) {
         setInterval(() => {
             io.emit("message", {
                 type: 'text',
@@ -146,7 +146,7 @@ export function handle(io, http) {
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
             }
-            
+
             if (Object.values(bots).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('bot');
             }
@@ -208,11 +208,12 @@ export function handle(io, http) {
                 log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
 
                 if (args[0] === "a") {
-                    if (args[1] === "help") { {
-                        if (authed) {
-                            socket.emit("sys-message", {
-                                type: "info",
-                                content: `Admin commands list<br><br><br>&lt;item&gt; denotes required, [item] for optional.<br><br>
+                    if (args[1] === "help") {
+                        {
+                            if (authed) {
+                                socket.emit("sys-message", {
+                                    type: "info",
+                                    content: `Admin commands list<br><br><br>&lt;item&gt; denotes required, [item] for optional.<br><br>
 /a help: this thing<br>
 /a status [id]: Status of user id, otherwise shows your own<br>
 /a ban &lt;id&gt;: ban a user<br>
@@ -223,9 +224,9 @@ export function handle(io, http) {
 /a whitelist &lt;id&gt;: whitelist a user from the IP check<br>
 /a disconnect &lt;id&gt;: disconnect a user -- except this, its done<br><br>
 IDs can be obtained from /list.`
-                            });
+                                });
+                            }
                         }
-                    }
                     } else if (args[1] === "auth") {
                         if (authed) {
                             socket.emit("sys-message", {
@@ -255,7 +256,9 @@ IDs can be obtained from /list.`
                             });
                         }
                     } else if (args[1] === "status") {
-                        let targetUser = {data: msgroom_user, socket: socket};
+                        if (!authed) return;
+
+                        let targetUser = { data: msgroom_user, socket: socket };
 
                         // If user is specified in args
                         if (args[2]) {
@@ -280,10 +283,12 @@ IDs can be obtained from /list.`
                             ].join("<br />")
                         });
                     } else if (args[1] === "ban") {
+                        if (!authed) return;
+
                         if (args[2]) {
                             let targetUsers = {};
                             users.forEach((value, key) => {
-                                if(value.data.id === args[2]) {
+                                if (value.data.id === args[2]) {
                                     targetUsers[value.data.session_id] = value;
                                 }
                             });
@@ -311,9 +316,11 @@ IDs can be obtained from /list.`
                             });
                         }
                     } else if (args[1] === "unban") {
+                        if (!authed) return;
+
                         if (args[2]) {
-                            for(var i = 0; i < bans.length; i++) {
-                                if(args[2] === bans[i]) {
+                            for (var i = 0; i < bans.length; i++) {
+                                if (args[2] === bans[i]) {
                                     bans.splice(i, 1);
                                     break;
                                 }
@@ -330,17 +337,19 @@ IDs can be obtained from /list.`
                             });
                         }
                     } else if (args[1] === "disconnect") {
+                        if (!authed) return;
+
                         if (args[2]) {
                             let targetUsers = {};
-                            if(args[2].length !== 32) {
+                            if (args[2].length !== 32) {
                                 users.forEach((value, key) => {
-                                    if(value.data.session_id === args[2]) {
+                                    if (value.data.session_id === args[2]) {
                                         targetUsers[value.data.session_id] = value;
                                     }
                                 });
                             } else {
                                 users.forEach((value, key) => {
-                                    if(value.data.id === args[2]) {
+                                    if (value.data.id === args[2]) {
                                         targetUsers[value.data.session_id] = value;
                                     }
                                 });
@@ -376,7 +385,7 @@ IDs can be obtained from /list.`
             // Message handling
             socket.on("message", data => {
                 if (messagesPerSecond <= 1) {
-                    if(data.content.length <= 2048) {
+                    if (data.content.length <= 2048) {
                         messagesPerSecond++;
                         io.emit("message", {
                             type: 'text',
