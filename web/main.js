@@ -18,7 +18,7 @@ const COMMANDS = [
     }
 ]
 // Config
-const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
+const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:3030`; //TODO: Make this dynamic
 let members = [];
 /**
  * Sends a text message.
@@ -152,6 +152,21 @@ socket.on("connect", () => {
         socket.on("sys-message", ({ content, type }) => {
             createMessage({ content, classes: ["system", type] });
         });
+
+        // User update
+        socket.on("user-update", (data) => {
+            console.log("User update", data);
+
+            switch (data.type) {
+                case "tag-add": {
+                    if (!data.tag) break;
+
+                    reloadMemberList();
+                    break;
+                }
+            }
+        });
+
         // Nickname change
         socket.on("nick-changed", (data) => {
             members = members.map(member => {

@@ -4,7 +4,8 @@
   "description": "A custom server for msgroom.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "serve": "node serve.js"
   },
   "author": "nolanwhy",
   "license": "ISC",

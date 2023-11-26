@@ -1,39 +1,235 @@
 import { createServer } from "node:http";
+import * as fs from "node:fs";
 import { Server as IOServer } from "socket.io";
+import crypto from 'crypto';
 
-class MRServer {
+export class MRServer {
     /** @type {Map<string, {socket: import("socket.io").Socket, data: Object}>} Users connected to the server */
     USERS = new Map();
+
+    /** @type {{url: string, method: string, needsAuth?: boolean, handler: (req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse, data: URLSearchParams) => Promise<any> }[]}} */
+    API_ENDPOINTS = [
+        {
+            url: "/ping",
+            method: "GET",
+
+            async handler(req, res, data) {
+                return ({
+                    pong: Date.now(),
+                    data: [...data],
+                });
+            }
+        },
+        {
+            url: "/keys/list",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res) {
+                const keys = Object.keys(this.db.admins);
+
+                return ({
+                    keys
+                })
+            }
+        },
+        {
+            url: "/keys/add",
+            needsAuth: true,
+            method: "POST",
+
+            async handler(req, res, data) {
+                const keys = this.db.admins;
+                let success = false;
+
+                const key = data.get("key")
+                if (key) {
+                    success = true;
+
+                    keys[key] = [];
+                    this.saveDb();
+                }
+
+                return ({
+                    success
+                });
+            }
+        },
+        {
+            url: "/keys/delete",
+            needsAuth: true,
+            method: "POST",
+
+            async handler(req, res, data) {
+                const keys = this.db.admins;
+                let success = false;
+
+                const key = data.get("key")
+                if (key && keys[key]) {
+                    success = true;
+
+                    delete keys[key];
+                    this.saveDb();
+                }
+
+                return ({
+                    success
+                });
+            }
+        },
+
+        /*** Message ***/
+        {
+            url: "/message/send",
+            needsAuth: true,
+            method: "POST",
+
+            async handler(req, res, data) {
+                let success = false;
+
+                const content = data.get("content");
+                const type = data.get("type") || "info";
+                if (content) {
+                    success = true;
+
+                    this.io.emit("sys-message", {
+                        type,
+                        content
+                    });
+                }
+
+                return ({
+                    success
+                });
+            }
+        }
+    ]
+
+    static randID() {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let id = '';
+        const charactersLength = characters.length;
+
+        for (let i = 0; i < 32; i++) {
+            id += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+
+        return id.slice(0, 32); // to be sure
+    }
+
+    static getIDsFromSocket(socket) {
+        const hash = crypto.createHash('md5').update(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress).digest('hex').toUpperCase();
+        const id = hash.slice(0, 32);
+
+        return id;
+    }
+
+    #handleAuth(req, res) {
+        if (!this.#isAllowed(req)) {
+            res.writeHead(401);
+
+            res.end(JSON.stringify({
+                error: "Unauthorized",
+                code: 401
+            }));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    #isAllowed(req) {
+        // Check if Authorization header is present and valid
+        const secret = this.params.adminSecret;
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || (authHeader !== `Bearer ${secret}`)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get user data
+     * @param {import("socket.io").Socket} socket
+     */
+    #getUserData(socket) {
+        let id = this.params.randomIDs ? MRServer.randID() : MRServer.getIDsFromSocket(socket);
+        let user = `anon${Math.random().toString().substring(2, 5).toUpperCase()}`;
+
+        // Session ID
+        let uid = 0;
+        this.USERS.forEach(u => {
+            if (id === u.data.id) uid += 1;
+        });
+
+        // Flags
+        const flags = [];
+
+        return {
+            id,
+            session_id: `${id}-${uid}`,
+            color: `#${parseInt(id, 36).toString(16).slice(0, 6)}`,
+            user,
+            flags,
+        };
+    }
+
+    /**
+     * Save the database to a file.
+     */
+    saveDb() {
+        fs.writeFileSync(this.params.db, JSON.stringify(this.db));
+    }
 
     /**
      * Initialize the server
      * @param {Object} params The server parameters
      */
     constructor(params) {
-        // Initialize params
+        /*** Initialize params ***/
         this.params = {
+            // Server
             db: "./db.json",
             server: createServer(),
+
+            // API
+            apiURL: "/api",
+            adminSecret: "very_secret",
+
+            // Miscs
+            randomIDs: false,
+
             ...params
         };
 
-        // Initialize props
-        this.db = this.params.db;
-        this.server = this.params.server;
-        this.socket = new IOServer(this.server);
+        /*** Database setup ***/
+        if (!fs.existsSync(this.params.db) || !fs.statSync(this.params.db).isFile()) {
+            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], bots: [] }));
+        }
 
-        // Bind methods
-        this.socket.on(
-            "connection",
-            this.#handleConnection.bind(this)
-        );
+        /*** Initialize props ***/
+        /** @type {Object} */
+        this.db = JSON.parse(fs.readFileSync(this.params.db));
+
+        /** @type {import("node:http").Server} */
+        this.server = this.params.server;
+
+        /** @type {import("socket.io").Server} */
+        this.io = new IOServer(this.server, { cors: { origin: "*", methods: ["GET", "POST"] } });
+
+        /*** Bind methods ***/
+        this.io.on("connection", this.#handleSocket.bind(this)); // <- Handle connections for Sockets
+        this.server.on("request", this.#handleApi.bind(this)); // <- Handle connections for the API
     }
 
     /**
      * Handle connections from clients
      * @param {import("socket.io").Socket} socket The connecting socket
      */
-    #handleConnection(socket) {
+    #handleSocket(socket) {
         let messagesPerSecond = 0;
         let sentUsername = false;
 
@@ -41,8 +237,8 @@ class MRServer {
             if (sentUsername) return;
             sentUsername = true;
 
-            const msgroom_user = getUserData(socket);
-            users.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
+            const msgroom_user = this.#getUserData(socket);
+            this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
 
             if (
                 !auth.user ||
@@ -56,9 +252,7 @@ class MRServer {
                 msgroom_user.user = auth.user;
             }
 
-            let admins = JSON.parse(await readFileSync("./src/database/admins.json"));
-            let bots = JSON.parse(await readFileSync("./src/database/bots.json"));
-            let bans = JSON.parse(await readFileSync("./src/database/banned.json"));
+            let { admins, bots, banned } = this.db;
 
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
@@ -68,7 +262,7 @@ class MRServer {
                 msgroom_user.flags.push('bot');
             }
 
-            if (Object.values(bans).some(v => v.includes(msgroom_user.id))) {
+            if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong.</span> " + msgroom_user.id);
                 socket.disconnect();
                 return;
@@ -83,13 +277,15 @@ class MRServer {
                     session_id: '',
                     date: new Date().toUTCString()
                 });
-                io.emit("user-join", {
+
+                this.io.emit("user-join", {
                     user: msgroom_user.user,
                     color: msgroom_user.color,
                     id: msgroom_user.id,
                     session_id: msgroom_user.session_id,
                     flags: msgroom_user.flags,
                 });
+
                 console.log("-> User " + msgroom_user.user, "(" + msgroom_user.session_id + ") joined the chat :D");
             }
 
@@ -106,7 +302,7 @@ class MRServer {
                     username.length < 16 ||
                     username !== "System"
                 ) {
-                    io.emit("nick-changed", {
+                    this.io.emit("nick-changed", {
                         oldUser: msgroom_user.user,
                         newUser: username,
                         id: msgroom_user.id,
@@ -119,9 +315,8 @@ class MRServer {
 
             socket.on("admin-action", async ({ args }) => {
                 let log = "Admin Action";
-                let admins = JSON.parse(await readFileSync("./src/database/admins.json"));
+                let { admins, banned } = this.db;
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
-                let bans = JSON.parse(await readFileSync("./src/database/banned.json"));
                 log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
 
                 if (args[0] === "a") {
@@ -165,7 +360,13 @@ class MRServer {
 
                         if (keySet) {
                             admins[keySet[0]].push(msgroom_user.id);
-                            writeFileSync("./src/database/admins.json", JSON.stringify(admins));
+                            this.saveDb();
+
+                            this.io.emit("user-update", {
+                                type: "tag-add",
+                                tag: "staff",
+                                user: msgroom_user.session_id
+                            });
 
                             socket.emit("sys-message", {
                                 type: "info",
@@ -182,7 +383,7 @@ class MRServer {
 
                         // If user is specified in args
                         if (args[2]) {
-                            targetUser = [...users.values()].find(u => u.data.id === args[2]);
+                            targetUser = [...this.USERS.values()].find(u => u.data.id === args[2]);
 
                             if (!targetUser) {
                                 socket.emit("sys-message", {
@@ -205,7 +406,7 @@ class MRServer {
                     } else if (args[1] === "ban") {
                         if (args[2]) {
                             let targetUsers = {};
-                            users.forEach((value, key) => {
+                            this.USERS.forEach((value, key) => {
                                 if (value.data.id === args[2]) {
                                     targetUsers[value.data.session_id] = value;
                                 }
@@ -218,8 +419,8 @@ class MRServer {
                                 return;
                             } else {
                                 Object.keys(targetUsers).forEach(key => {
-                                    bans.push(targetUsers[key].data.id);
-                                    writeFileSync("./src/database/banned.json", JSON.stringify(bans));
+                                    banned.push(targetUsers[key].data.id);
+                                    this.saveDb();
                                     targetUsers[key].socket.disconnect();
                                 });
                                 socket.emit("sys-message", {
@@ -235,13 +436,13 @@ class MRServer {
                         }
                     } else if (args[1] === "unban") {
                         if (args[2]) {
-                            for (var i = 0; i < bans.length; i++) {
-                                if (args[2] === bans[i]) {
-                                    bans.splice(i, 1);
+                            for (var i = 0; i < banned.length; i++) {
+                                if (args[2] === banned[i]) {
+                                    banned.splice(i, 1);
                                     break;
                                 }
                             }
-                            writeFileSync("./src/database/banned.json", JSON.stringify(bans));
+                            this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
                                 content: "User unbanned"
@@ -256,13 +457,13 @@ class MRServer {
                         if (args[2]) {
                             let targetUsers = {};
                             if (args[2].length !== 32) {
-                                users.forEach((value, key) => {
+                                this.USERS.forEach((value, key) => {
                                     if (value.data.session_id === args[2]) {
                                         targetUsers[value.data.session_id] = value;
                                     }
                                 });
                             } else {
-                                users.forEach((value, key) => {
+                                this.USERS.forEach((value, key) => {
                                     if (value.data.id === args[2]) {
                                         targetUsers[value.data.session_id] = value;
                                     }
@@ -301,7 +502,7 @@ class MRServer {
                 if (messagesPerSecond <= 1) {
                     if (data.content.length <= 2048) {
                         messagesPerSecond++;
-                        io.emit("message", {
+                        this.io.emit("message", {
                             type: 'text',
                             content: data.content,
                             user: msgroom_user.user,
@@ -318,12 +519,71 @@ class MRServer {
                         content: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
                     });
                 }
-
             });
+
+            socket.on("disconnect", () => {
+                this.USERS.delete(msgroom_user.session_id);
+                clearInterval(resetMessagesPerSecond);
+
+                this.io.emit("user-leave", {
+                    user: msgroom_user.user,
+                    id: msgroom_user.id,
+                    session_id: msgroom_user.session_id,
+                });
+
+                console.log("<- User", msgroom_user.user, "(" + msgroom_user.session_id + ") left the chat :(");
+            });
+
+            socket.emit("online", [...this.USERS.values()].map(u => u.data));
         })
 
     }
-    
+
+    /**
+     * Handles API requests
+     * @param {import("node:http").IncomingMessage} req The request
+     * @param {import("node:http").ServerResponse} res The response
+     */
+    async #handleApi(req, res) {
+        const API_URL = this.params.apiURL;
+
+        // Check if the request is an API request
+        if (!req.url.startsWith(`${API_URL}/`)) return;
+
+        const [fetchURL, query] = req.url.slice(API_URL.length).split("?");
+        const endpoint = this.API_ENDPOINTS.find(e => e.url === fetchURL && e.method === req.method);
+
+        // Check if the endpoint exists
+        if (!endpoint) {
+            res.writeHead(404);
+            res.end(JSON.stringify({
+                error: "Endpoint not found",
+                code: 404
+            }));
+            return;
+        }
+
+        console.log(`[${endpoint ? '✓' : '✗'}|API] ${req.method} ${fetchURL}`);
+
+        // Set the content type
+        res.setHeader("Content-Type", "application/json");
+
+        // Verify if the request needs auth then handle it
+        if (endpoint.needsAuth && this.#handleAuth(req, res)) return;
+
+        // Get the data from the search query
+        const queryParams = new URLSearchParams(query);
+
+        // Handle the request
+        const data = await endpoint.handler.call(this, req, res, queryParams);
+        if (res.closed) return;
+        res.end(JSON.stringify(data));
+    }
+
+    /**
+     * Starts the server on the specified port.
+     * @param {number} port - The port number to listen on. Default is 3030.
+     */
     async start(port = 3030) {
         await this.server.listen(port);
     }
