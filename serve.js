@@ -3,7 +3,9 @@ import { MRServer } from "./index.js";
 import * as http from "node:http";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { collectOptions } from "./src/utils/cli.js";
 
+const ARGUMENTS = collectOptions(process.argv.slice(2), { valueOptions: [] });
 const HTTP_SERVER = http.createServer();
 const MIME_TYPES = new Map([
     ['.html', 'text/html'],
@@ -31,7 +33,7 @@ const server = new MRServer({
 });
 
 // Client UI
-if (process.argv.includes("--client") || "1" === "1") { // update this so it actually works
+if (ARGUMENTS.options.some(o => o.name === "client")) {
     HTTP_SERVER.on("request", async (req, res) => {
         if (req.url.startsWith(`${server.apiURL}/`) || req.url.startsWith("/socket.io/")) return;
 
@@ -63,7 +65,7 @@ if (process.argv.includes("--client") || "1" === "1") { // update this so it act
     });
 }
 
-const PORT = process.argv[2] ? parseInt(process.argv[2]) : 4096;
+const PORT = parseInt(ARGUMENTS.remainder[0]) || 4096;
 
 console.log(`Starting on port ${PORT}...`);
 await server.start(PORT);
