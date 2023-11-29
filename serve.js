@@ -8,7 +8,7 @@ const server = new MRServer({
     apiURL: process.env.API_ENDPOINT || "/api"
 });
 
-const PORT = process.argv[2] ? parseInt(process.argv[2]) : 3030;
+const PORT = process.argv[2] ? parseInt(process.argv[2]) : 4096;
 
 console.log(`Starting on port ${PORT}...`);
 await server.start(PORT);

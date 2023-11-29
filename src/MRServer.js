@@ -582,9 +582,9 @@ export class MRServer {
 
     /**
      * Starts the server on the specified port.
-     * @param {number} port - The port number to listen on. Default is 3030.
+     * @param {number} port - The port number to listen on. Default is 4096.
      */
-    async start(port = 3030) {
+    async start(port = 4096) {
         await this.server.listen(port);
     }
 }

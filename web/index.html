@@ -1,96 +1,115 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <meta
-            http-equiv="Content-Type"
-            value="application/xhtml+xml;charset=utf-8"
-        />
-        <meta
-            name="viewport"
-            content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"
-        />
-        <meta property="og:url" content="https://msgroom.windows96.net" />
-        <meta property="og:title" content="MIKESOFT MESSAGE ROOM" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="MsgRoom" />
-        <meta property="og:image" content="img/icon/favicon-large.png" />
-        <meta
-            property="og:description"
-            content="The official Windows 96 chat room as featured on the site!"
-        />
-        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' msgroom.windows96.net cdn.socket.io twemoji.maxcdn.com cdn.jsdelivr.net; script-src 'self' msgroom.windows96.net cdn.socket.io twemoji.maxcdn.com cdn.jsdelivr.net 'unsafe-inline';"> -->
-        <title>MsgRoom - Windows 96 Chat</title>
-        <link rel="stylesheet" href="css/font36.css" />
-        <link rel="stylesheet" href="css/normalize.css" />
-        <link rel="stylesheet" href="css/shell36.css" />
-        <link rel="stylesheet" href="css/ua-chrome.css" />
-        <link rel="stylesheet" href="css/chat.css" />
-        <link rel="stylesheet" href="css/mobile.css" />
-        <!-- <script src="https://msgroom.windows96.net/socket.io/socket.io.js"></script> -->
-        <!-- <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script> -->
-        <script
-            src="https://cdn.socket.io/4.7.2/socket.io.min.js"
-            integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
-            crossorigin="anonymous"
-        ></script>
-        <script src="main.js" type="module" defer></script>
-        <!-- <script src="kelbazsmain.js" type="module" defer></script> -->
-        <script
-            src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"
-            crossorigin="anonymous"
-        ></script>
-        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-        <script src="./purify.js"></script>
-        <link rel="shortcut icon" href="img/icon/favicon-large.png" />
-        <link rel="apple-touch-icon" href="img/icon/favicon-large.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <style>
-            /*.members > .list > .member > .tag {
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" value="application/xhtml+xml;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no" />
+    <meta property="og:url" content="https://msgroom.windows96.net" />
+    <meta property="og:title" content="MIKESOFT MESSAGE ROOM" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MsgRoom" />
+    <meta property="og:image" content="img/icon/favicon-large.png" />
+    <meta property="og:description" content="The official Windows 96 chat room as featured on the site!" />
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' msgroom.windows96.net cdn.socket.io twemoji.maxcdn.com cdn.jsdelivr.net; script-src 'self' msgroom.windows96.net cdn.socket.io twemoji.maxcdn.com cdn.jsdelivr.net 'unsafe-inline';"> -->
+    <title>MsgRoom - Windows 96 Chat</title>
+    <link rel="stylesheet" href="css/font36.css" />
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/shell36.css" />
+    <link rel="stylesheet" href="css/ua-chrome.css" />
+    <link rel="stylesheet" href="css/chat.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <!-- <script src="https://msgroom.windows96.net/socket.io/socket.io.js"></script> -->
+    <!-- <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script> -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"
+        integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
+        crossorigin="anonymous"></script>
+    <script src="main.js" type="module" defer></script>
+    <!-- <script src="kelbazsmain.js" type="module" defer></script> -->
+    <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./purify.js"></script>
+    <link rel="shortcut icon" href="img/icon/favicon-large.png" />
+    <link rel="apple-touch-icon" href="img/icon/favicon-large.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <style>
+        /*.members > .list > .member > .tag {
                 margin-right: 0;
             }*/
-            .message > .sig > .tag:not(.tag + .tag) {
-                margin-left: -5px;
+        .message>.sig>.tag:not(.tag + .tag) {
+            margin-left: -5px;
+        }
+
+        .messageContentFix {
+            white-space: normal;
+        }
+
+        .messageContentFix p {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="separator"></div>
+        <div class="messages"></div>
+        <div class="user-input">
+            <span class="nickname">Unknown</span>
+            <input type="text" class="message-box w96-textbox" />
+            <button class="w96-button send">Send</button>
+        </div>
+    </div>
+
+    <div class="members">
+        <span class="title bold-noaa">Online Members</span>
+        <div class="list"></div>
+    </div>
+
+    <div id="credits">
+        <a href="#" onclick='if(confirm("This will make you disconnect. Are you sure?")) window.location = "/credits"'>
+            Credits
+        </a>
+    </div>
+
+    <div class="mob-tab-btns">
+        <button class="active">Chat</button><button>Members</button>
+    </div>
+
+    <script>
+        // app.call(window);
+    </script>
+    <style id="theme"></style>
+    <script>
+        window.addEventListener('message', (e) => {
+            if (typeof e.data !== "object") {
+                console.error("Got data, but is not an object.");
+                return;
             }
-            .messageContentFix {
-                white-space: normal;
+
+            if (typeof e.data.op === "undefined") {
+                console.error("Got data, but op is undefined.");
+                return;
             }
-            .messageContentFix p {
-                margin: 0;
+
+            if (e.data.op !== "wui-css-set") return;
+
+            if (typeof e.data.css === "undefined") {
+                console.error("Got CSS theme request, but undefined.");
+                return;
             }
-        </style>
-    </head>
-    <body>
-        <div class="main">
-            <div class="separator"></div>
-            <div class="messages"></div>
-            <div class="user-input">
-                <span class="nickname">Unknown</span>
-                <input type="text" class="message-box w96-textbox" />
-                <button class="w96-button send">Send</button>
-            </div>
-        </div>
 
-        <div class="members">
-            <span class="title bold-noaa">Online Members</span>
-            <div class="list"></div>
-        </div>
+            if (document.getElementById("theme")) {
+                document.getElementById("theme").innerHTML = e.data.css;
+                return;
+            }
 
-        <div id="credits">
-            <a
-                href="#"
-                onclick='if(confirm("This will make you disconnect. Are you sure?")) window.location = "/credits"'
-            >
-                Credits
-            </a>
-        </div>
+            const element = document.createElement("style");
+            element.id = "theme";
+            element.innerHTML = e.data.css;
+            document.body.appendChild(element);
+        });
+    </script>
+</body>
 
-        <div class="mob-tab-btns">
-            <button class="active">Chat</button><button>Members</button>
-        </div>
-
-        <script>
-            // app.call(window);
-        </script>
-    </body>
 </html>

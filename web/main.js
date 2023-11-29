@@ -18,7 +18,7 @@ const COMMANDS = [
     }
 ]
 // Config
-const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:3030`; //TODO: Make this dynamic
+const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:4096`; //TODO: Make this dynamic
 let members = [];
 /**
  * Sends a text message.
