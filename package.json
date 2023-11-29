@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "serve": "node serve.js --client"
+    "serve": "node serve.js"
   },
   "author": "nolanwhy",
   "license": "ISC",

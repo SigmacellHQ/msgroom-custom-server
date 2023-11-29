@@ -31,7 +31,7 @@ const server = new MRServer({
 });
 
 // Client UI
-if (process.argv.includes("--client")) {
+if (process.argv.includes("--client") || "1" === "1") { // update this so it actually works
     HTTP_SERVER.on("request", async (req, res) => {
         if (req.url.startsWith(`${server.apiURL}/`) || req.url.startsWith("/socket.io/")) return;
 
