@@ -80,7 +80,8 @@
         // app.call(window);
     </script>
     <style id="theme"></style>
-    <script>
+    <script type="module">
+        import { changeUsername } from './main.js';
         window.addEventListener('message', (e) => {
             if (typeof e.data !== "object") {
                 console.error("Got data, but is not an object.");

@@ -230,7 +230,7 @@ socket.on('disconnect', () => {
     }
 });
 
-function changeUsername(username = null) {
+export function changeUsername(username = null) {
     // Checking if there isn't an username
     if (!username) {
         // There isn't a username, ask one.
