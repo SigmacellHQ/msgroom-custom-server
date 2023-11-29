@@ -1,11 +1,14 @@
-import "dotenv/config";
 import { MRServer } from "./index.js";
 import * as http from "node:http";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { collectOptions } from "./src/utils/cli.js";
 
-const ARGUMENTS = collectOptions(process.argv.slice(2), { valueOptions: [] });
+const ARGUMENTS = collectOptions(process.argv.slice(2), { valueOptions: [
+    "db-file",
+    "admin-secret",
+    "api-url",
+] });
 const HTTP_SERVER = http.createServer();
 const MIME_TYPES = new Map([
     ['.html', 'text/html'],
@@ -25,10 +28,10 @@ const MIME_TYPES = new Map([
 
 // Server Side
 const server = new MRServer({
-    db: process.env.DB_FILE || "./db.json",
-    adminSecret: process.env.ADMIN_SECRET || "very_secret",
-    randomIDs: (process.env.RAND_IDS === "true"),
-    apiURL: process.env.API_ENDPOINT || "/api",
+    db: ARGUMENTS.options.find(o => o.name === "db-file")?.value || "./db.json",
+    adminSecret: ARGUMENTS.options.find(o => o.name === "admin-secret")?.value || "very_secret",
+    randomIDs: (ARGUMENTS.options.some(o => o.name === "random-ids")),
+    apiURL: ARGUMENTS.options.find(o => o.name === "api-url")?.value || "/api",
     server: HTTP_SERVER
 });
 

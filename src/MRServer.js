@@ -6,6 +6,7 @@ import crypto from 'crypto';
 export class MRServer {
     /** @type {Map<string, {socket: import("socket.io").Socket, data: Object}>} Users connected to the server */
     USERS = new Map();
+    COLORS = ["#b38c16", "#2bb7b7", "#9c27b0", "#f44336", "#009688"];
 
     /** @type {{url: string, method: string, needsAuth?: boolean, handler: (req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse, data: URLSearchParams) => Promise<any> }[]}} */
     API_ENDPOINTS = [
@@ -171,7 +172,7 @@ export class MRServer {
         return {
             id,
             session_id: `${id}-${uid}`,
-            color: `#${parseInt(id, 36).toString(16).slice(0, 6)}`,
+            color: this.COLORS[parseInt(id.slice(0, 4), 36) % this.COLORS.length],
             user,
             flags,
         };

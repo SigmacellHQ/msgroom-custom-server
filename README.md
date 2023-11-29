@@ -15,14 +15,9 @@ cd msgroom-custom-server
 # Step 3: Install dependencies
 npm install
 
-# Step 4: Set up .env
-cp .env.example .env
-# You can edit .env to your liking.
-# ⚠ Edit the ADMIN_SECRET in .env
-
 # Step 4: Run the server
-#:           <PORT>
-npm run serve 4096
+#:           <PORT>   <CLIENT UI>
+npm run serve 4096 -- --client
 
 # Step 5: Share with friends (optional)
 #:        <PORT>
@@ -35,6 +30,13 @@ You successfully installed MsgRoom Custom Server!<br>
 On the terminal, you should see the Arguments, and the url to visit your custom server.
 
 ***Thank you for using our custom server! ❤***
+
+## CLI Options
+- `--client`: Starts the client ui server
+- `--random-ids`: Randomizes user ids
+- `--db-file <PATH>`: Sets the path to the JSON db file
+- `--admin-secret <SECRET>`: Sets the admin secret
+- `--api-url <URL>`: Sets the api endpoint
 
 ## How to add bots
 This is up to the bot api owner to add, but if its like msgroom-orm, here's how to do it \
