@@ -17,6 +17,37 @@ const COMMANDS = [
         }
     }
 ]
+
+window.addEventListener('message', (e) => {
+    if (typeof e.data !== "object") {
+        console.error("Got data, but is not an object.");
+        return;
+    }
+
+    if (e.data.op === "wui-css-set") {
+        if (typeof e.data.css === "undefined") {
+            console.error("Got CSS theme request, but undefined.");
+            return;
+        }
+
+        if (document.getElementById("theme")) {
+            document.getElementById("theme").innerHTML = e.data.css;
+            return;
+        }
+
+        const element = document.createElement("style");
+        element.id = "theme";
+        element.innerHTML = e.data.css;
+        document.body.appendChild(element);
+    } else if(e.data.op === "wui-nick-change") {
+        if(e.data.args.value) {
+            changeUsername(e.data.args.value);
+        } else {
+            console.error("Got data, but didn't get username.");
+        }
+    }
+});
+
 // Config
 const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
 let members = [];
