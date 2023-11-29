@@ -22,11 +22,11 @@ cp .env.example .env
 
 # Step 4: Run the server
 #:           <PORT>
-npm run serve 3030
+npm run serve 4096
 
 # Step 5: Share with friends (optional)
 #:        <PORT>
-ngrok http 3030 # (*)
+ngrok http 4096 # (*)
 ```
 > (*): You need an ngrok account, which you can set up [here](https://ngrok.com/).
 
@@ -46,7 +46,7 @@ Now, it's really easy, just add a new argument to Client with an object containi
 If you don't understand anything, just do it like this:
 ```js
 //                                                         <DOMAIN>  <PORT>
-const client = new Client("TestBot", "!", {server: "wss://example.com:3030"});
+const client = new Client("TestBot", "!", {server: "wss://example.com:4096"});
 ```
 **Congrats! 🎉** Your bot should now work with MRCS!
 
