@@ -119,7 +119,7 @@ window.socket = socket;
 socket.on("connect", () => {
     // Nickname
     let username = localStorage.getItem("nickname") ?? prompt("Enter username");
-    if (!username || username.length < 1 || username.length > 16) {
+    if (!username || username.length < 1 || username.length > 18) {
         username = "anon" + Math.floor(Math.random() * 99) + 1;
     } else {
         localStorage.setItem("nickname", username);
@@ -252,8 +252,8 @@ export function changeUsername(username = null) {
             changeUsername(newUsername); // Recall the function
         }
     } else {
-        // There is a username, checking if username is less than 1 character, bigger than 16 characters or "System"
-        if (username.length < 1 || username.length > 16 || username === "System") {
+        // There is a username, checking if username is less than 1 character, bigger than 18 characters or "System"
+        if (username.length < 1 || username.length > 18 || username === "System") {
             createMessage({ content: "**This nickname is not allowed.**", classes: ["system", "error"] });
         } else {
             // Emit to server that we changed our username

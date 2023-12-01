@@ -244,7 +244,7 @@ export class MRServer {
             if (
                 !auth.user ||
                 auth.user.length < 1 ||
-                auth.user.length > 16 ||
+                auth.user.length > 18 ||
                 auth.user === "System"
             ) {
                 socket.emit("auth-error", "This nickname is not allowed.");
@@ -300,7 +300,7 @@ export class MRServer {
             socket.on("change-user", (username) => {
                 if (
                     username.length > 1 ||
-                    username.length < 16 ||
+                    username.length < 18 ||
                     username !== "System"
                 ) {
                     this.io.emit("nick-changed", {
