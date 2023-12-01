@@ -59,7 +59,7 @@ function createMessage(params) {
             </div>
 
             <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-                ${twemoji.parse(fixXSS(opts.content))}
+                ${twemoji.parse(textToMD(opts.content))}
             </div>
         `;
     } else {
@@ -71,7 +71,7 @@ function createMessage(params) {
             </div>
 
             <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-                ${twemoji.parse(DOMPurify.sanitize(marked.parse(opts.content)).replaceAll("\\n", "<br>"))}
+                ${twemoji.parse(textToMD(opts.content))}
             </div>
         `;
     }
@@ -93,6 +93,19 @@ function reloadMemberList() {
     members.forEach(member => {
         memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
     });
+}
+
+/**
+ * Converts text to markdown.
+ * @param {String} text The text to convert.
+ */
+function textToMD(text) {
+    return text
+        .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
+        .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        .replaceAll("\n", "<br />")
+        .replaceAll("\\n", "<br />");
 }
 
 var errored = false;
