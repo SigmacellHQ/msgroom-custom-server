@@ -59,7 +59,7 @@ function createMessage(params) {
             </div>
 
             <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-                ${twemoji.parse(textToMD(opts.content))}
+                ${twemoji.parse(textToMD(fixXSS(opts.content)))}
             </div>
         `;
     } else {
@@ -100,7 +100,9 @@ function reloadMemberList() {
  * @param {String} text The text to convert.
  */
 function textToMD(text) {
-    return fixXSS(text)
+    return text
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
         // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
