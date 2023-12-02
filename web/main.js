@@ -99,15 +99,17 @@ function reloadMemberList() {
  * Converts text to markdown.
  * @param {String} text The text to convert.
  */
-function textToMD(text) {
-    return text
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
+function textToMD(text, custom = {}) {
+    let newText = text
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
         // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
         .replaceAll("\n", "<br />")
         .replaceAll("\\n", "<br />");
+    Object.keys(custom).forEach(key => {
+        newText = newText.replaceAll(key, custom[key]);
+    });
+    return newText
 }
 
 var errored = false;
