@@ -277,6 +277,7 @@ export function changeUsername(username = null) {
                     // It's us, clear timeout and set success to true. Also change nickname on html
                     clearTimeout(checkTimeout);
                     changedSuccess = true;
+                    localStorage.setItem("nickname", username);
                     document.querySelector(".nickname").innerText = username;
                 }
             });
