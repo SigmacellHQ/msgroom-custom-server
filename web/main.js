@@ -100,7 +100,7 @@ function reloadMemberList() {
  * @param {String} text The text to convert.
  */
 function textToMD(text) {
-    return text
+    return fixXSS(text)
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
         // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
