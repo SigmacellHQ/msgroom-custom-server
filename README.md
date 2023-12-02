@@ -42,13 +42,13 @@ On the terminal, you should see the Arguments, and the url to visit your custom 
 This is up to the bot api owner to add, but if its like msgroom-orm, here's how to do it \
 Your client should look like:
 ```js
-const client = new Client("TestBot", "!");
+const client = new Client("TestBot", [ "!" ]);
 ```
 Now, it's really easy, just add a new argument to Client with an object containing the arguments \
 If you don't understand anything, just do it like this:
 ```js
 //                                                         <DOMAIN>  <PORT>
-const client = new Client("TestBot", "!", {server: "wss://example.com:4096"});
+const client = new Client("TestBot", [ "!" ], {server: "wss://example.com:4096"});
 ```
 **Congrats! 🎉** Your bot should now work with MRCS!
 
