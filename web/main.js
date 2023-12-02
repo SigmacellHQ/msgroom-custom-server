@@ -103,7 +103,7 @@ function textToMD(text) {
     return text
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
-        .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
         .replaceAll("\n", "<br />")
         .replaceAll("\\n", "<br />");
 }
