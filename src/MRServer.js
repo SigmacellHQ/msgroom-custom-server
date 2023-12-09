@@ -401,7 +401,7 @@ export class MRServer {
                                 `User status:`,
                                 `ID: <span class="bold-noaa">${targetUser.data.id}</span>`,
                                 `All Flags: <span class="bold-noaa">${JSON.stringify(targetUser.data.flags)}</span>`,
-                                `IP: <span class="bold-noaa">${targetUser.ip}</span>`
+                                // `IP: <span class="bold-noaa">${targetUser.ip}</span>`
                             ].join("<br />")
                         });
                     } else if (args[1] === "ban") {
