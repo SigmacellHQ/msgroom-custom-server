@@ -500,6 +500,7 @@ export class MRServer {
 
             // Message handling
             socket.on("message", data => {
+                if (!data.content) return;
                 if (messagesPerSecond <= 1) {
                     if (data.content.length <= 2048) {
                         messagesPerSecond++;
