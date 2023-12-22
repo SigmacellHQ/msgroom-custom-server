@@ -284,6 +284,7 @@ export function changeUsername(username = null) {
         }
     }
 }
-function sendMessage(msg) {
-    socket.emit("message", {});
-}
+
+window.addEventListener("beforeunload", () => {
+    socket.disconnect();
+});
