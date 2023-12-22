@@ -105,7 +105,6 @@ function textToMD(text, custom = {}) {
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
         // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
         .replaceAll("\n", "<br />")
-        .replaceAll("\\n", "<br />");
     Object.keys(custom).forEach(key => {
         newText = newText.replaceAll(key, custom[key]);
     });
