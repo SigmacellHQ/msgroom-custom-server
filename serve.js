@@ -54,6 +54,10 @@ if (ARGUMENTS.options.some(o => o.name === "client")) {
                         res.writeHead(200, { 'Content-Type': contentType });
                         res.end(content, 'utf-8');
                     });
+                } else if (error.code == 'EISDIR') {
+                    res.writeHead(500);
+                    res.end('Sorry, please visit /index.html or any other file. (This is a directory)');
+                    res.end();
                 } else {
                     res.writeHead(500);
                     res.end('Sorry, check with the site admin for error: ' + error.code + ' ..\n');
