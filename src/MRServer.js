@@ -298,19 +298,26 @@ export class MRServer {
              * On message reception, handle it
              */
             socket.on("change-user", (username) => {
-                if (
-                    username.length > 1 ||
-                    username.length < 18 ||
-                    username !== "System"
-                ) {
-                    this.io.emit("nick-changed", {
-                        oldUser: msgroom_user.user,
-                        newUser: username,
-                        id: msgroom_user.id,
-                        session_id: msgroom_user.session_id,
+                if (messagesPerSecond <= 1) {
+                    if (
+                        username.length > 1 ||
+                        username.length < 18 ||
+                        username !== "System"
+                    ) {
+                        this.io.emit("nick-changed", {
+                            oldUser: msgroom_user.user,
+                            newUser: username,
+                            id: msgroom_user.id,
+                            session_id: msgroom_user.session_id,
+                        });
+                        console.log("User", msgroom_user.user, "(" + msgroom_user.session_id + ") changed their username to", username);
+                        msgroom_user.user = username;
+                    }
+                } else {
+                    socket.emit("sys-message", {
+                        type: "error",
+                        content: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
                     });
-                    console.log("User", msgroom_user.user, "(" + msgroom_user.session_id + ") changed their username to", username);
-                    msgroom_user.user = username;
                 }
             });
 
@@ -500,6 +507,7 @@ export class MRServer {
 
             // Message handling
             socket.on("message", data => {
+                // if (!data.type) return;
                 if (!data.content) return;
                 if (messagesPerSecond <= 1) {
                     if (data.content.length <= 2048) {

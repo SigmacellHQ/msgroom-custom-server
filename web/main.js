@@ -46,6 +46,12 @@ function createMessage(params) {
         date: new Date().toUTCString(),
         ...params,
     }
+
+    let blocked = localStorage.getItem("blocked") ?? "[]";
+    blocked = JSON.parse(blocked);
+
+    console.log(opts);
+    if(opts.id && blocked.includes(opts.id)) return;
     
     const msg = document.createElement("div");
     msg.className = "message";
@@ -120,6 +126,8 @@ const socket = io(API_URL, {
 });
 window.socket = socket;
 socket.on("connect", () => {
+    // Add the blocked array if its not already done
+    if(!localStorage.getItem("blocked")) localStorage.setItem("blocked", "[]");
     // Nickname
     let username = localStorage.getItem("nickname") ?? prompt("Enter username");
     if (!username || username.length < 1 || username.length > 18) {
@@ -148,14 +156,14 @@ socket.on("connect", () => {
             }
             members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
             reloadMemberList();
-            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${fixXSS(data.user)}</span> joined the chat :D`, classes: ["system", "info"] });
+            createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${fixXSS(data.user)}</span> joined the chat :D`, classes: ["system", "info"], id: data.id, session_id: data.session_id });
         });
 
         // Leave
         socket.on("user-leave", (data) => {
             members = members.filter(member => member.session_id !== data.session_id);
             reloadMemberList();
-            createMessage({ content: `<- User <span class="bold-noaa">${fixXSS(data.user)}</span> left the chat :(`, classes: ["system", "error"] });
+            createMessage({ content: `<- User <span class="bold-noaa">${fixXSS(data.user)}</span> left the chat :(`, classes: ["system", "error"], id: data.id, session_id: data.session_id });
         });
 
         // Message handling

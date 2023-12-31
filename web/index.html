@@ -66,6 +66,12 @@
         <div class="list"></div>
     </div>
 
+    <div id="resetBlocked">
+        <a href="#" onclick='if(confirm("This will reset your blocked users. Are you sure?")) localStorage.setItem("blocked", "[]")'>
+            Reset Blocked
+        </a>
+    </div>
+
     <div id="credits">
         <a href="#" onclick='if(confirm("This will make you disconnect. Are you sure?")) window.location = "/credits/index.html"'>
             Credits
