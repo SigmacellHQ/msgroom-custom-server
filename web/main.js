@@ -203,6 +203,8 @@ socket.on("connect", () => {
             createMessage({
                 content: `User **${fixXSS(data.oldUser)}** changed their username to **${fixXSS(data.newUser)}**`,
                 classes: ["system", "success"],
+                id: data.id,
+                session_id: data.session_id
             });
         });
         nicknameBtn.addEventListener("click", () => {
