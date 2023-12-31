@@ -50,7 +50,6 @@ function createMessage(params) {
     let blocked = localStorage.getItem("blocked") ?? "[]";
     blocked = JSON.parse(blocked);
 
-    console.log(opts);
     if(opts.id && blocked.includes(opts.id)) return;
     
     const msg = document.createElement("div");
@@ -179,8 +178,6 @@ socket.on("connect", () => {
 
         // User update
         socket.on("user-update", (data) => {
-            console.log("User update", data);
-
             switch (data.type) {
                 case "tag-add": {
                     if (!data.tag) break;
@@ -244,7 +241,6 @@ socket.on("connect_error", (err) => {
     if(!errored) {
         errored = true;
         // location.reload();
-        console.log(err);
         createMessage({ content: "You have been disconnected from the server. Reason can be found on console. [Click here to reconnect](/)", classes: ["system", "error"] });
     }
 });
@@ -293,6 +289,29 @@ export function changeUsername(username = null) {
         }
     }
 }
+
+let currentlySelected = "Chat";
+const mobTabBtns = document.querySelectorAll(".mob-tab-btns button");
+mobTabBtns[0].addEventListener("click", () => {
+    if(currentlySelected !== "Chat") {
+        currentlySelected = "Chat";
+        mobTabBtns.forEach(btnToDisable => {
+            btnToDisable.classList.remove("active");
+        });
+        mobTabBtns[0].className = "active";
+        document.querySelector('.members').classList.remove("mob-tab-cnt");
+    }
+});
+mobTabBtns[1].addEventListener("click", () => {
+    if(currentlySelected !== "Members") {
+        currentlySelected = "Members";
+        mobTabBtns.forEach(btnToDisable => {
+            btnToDisable.classList.remove("active");
+        });
+        mobTabBtns[1].className = "active";
+        document.querySelector('.members').classList.add("mob-tab-cnt");
+    }
+});
 
 window.addEventListener("beforeunload", () => {
     socket.disconnect();
