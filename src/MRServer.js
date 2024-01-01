@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import * as fs from "node:fs";
+import { spawn } from "node:child_process";
 import { Server as IOServer } from "socket.io";
 import crypto from 'crypto';
 
@@ -146,6 +147,18 @@ export class MRServer {
             }
         },
         {
+            url: "/user/banned",
+            method: "GET",
+
+            async handler(req, res, data) {
+                const id = data.get("id");
+
+                return ({
+                    banned: this.db.banned.includes(id)
+                })
+            }
+        },
+        {
             url: "/user/ban",
             needsAuth: true,
             method: "GET",
@@ -218,6 +231,73 @@ export class MRServer {
                 });
             }
         },
+
+        /*** Server ***/
+        {
+            url: "/server/stop",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                let timeout = 0;
+
+                if (data.has("t")) {
+                    timeout = parseInt(data.get("t"));
+                }
+
+                if (data.has("alert") && timeout > 0) {
+                    this.io.emit("sys-message", {
+                        type: "info",
+                        content: `**The server will stop in ${timeout} seconds.**`,
+                    });
+                }
+
+                res.end(JSON.stringify({ success: true }));
+
+                setTimeout(() => {
+                    process.exit(0);
+                }, timeout * 1000);
+            }
+        },
+        {
+            url: "/server/restart",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                let timeout = 0;
+
+                if (data.has("t")) {
+                    timeout = parseInt(data.get("t"));
+                }
+
+                if (data.has("alert") && timeout > 0) {
+                    this.io.emit("sys-message", {
+                        type: "info",
+                        content: `**The server will restart in ${timeout} seconds.**`,
+                    });
+                }
+
+                res.end(JSON.stringify({ success: true }));
+
+                setTimeout(() => {
+                    // Create a new process 
+                    process.once("exit", () => {
+                        spawn(
+                            process.argv.shift(),
+                            process.argv,
+                            {
+                                cwd: process.cwd(),
+                                detached: true,
+                                stdio: "inherit"
+                            }
+                        );
+                    });
+
+                    process.exit(0);
+                }, timeout * 1000);
+            }
+        }
     ]
 
     static randID() {
