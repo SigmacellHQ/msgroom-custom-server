@@ -9,11 +9,112 @@ const memberList = document.querySelector(".members>.list");
 // Commands
 const COMMANDS = [
     {
+        name: "about",
+        description: "About MsgRoom.",
+        exec: () => {
+            createMessage({
+                content: [
+                    "**MsgRoom Custom Server**",
+                    "Made with ❤️ and 🥖 by nolanwhy & Kelbaz",
+                    "",
+                    "Open source on <a href='https://github.com/nolanwhy/msgroom-custom-server' target='_blank'>GitHub 🡕</a>",
+                ].join("\n"),
+                classes: ["system", "info"],
+                allowHtml: true
+            });
+        }
+    },
+    {
         name: "a",
-        hidden: !0,
+        hidden: true,
         description: "Executes an admin action.",
         exec: ({ socket, args }) => {
             socket.emit("admin-action", { args })
+        }
+    },
+    {
+        name: "clear",
+        description: "Clear the chat log.",
+        exec: () => {
+            messageList.innerHTML = "";
+            createMessage({ content: "The chat has been cleared.", classes: ["system", "info"] });
+        }
+    },
+    {
+        name: "list",
+        description: "View online memebers.",
+        exec: () => {
+            createMessage({
+                content: "**Online Users**\n\n" + members.map(member => `${member.user} [source id: <code>${member.id}</code>]`).join("\n"),
+                classes: ["system", "info"],
+                allowHtml: true
+            });
+        }
+    },
+    {
+        name: "block",
+        description: "Blocks a user by ID. Use /list to retrieve user IDs.",
+        exec: ({ args }) => {
+            const id = args[1];
+
+            if (!id) {
+                createMessage({
+                    content: "**No user ID specified to block. You can find user IDs with /list (NOT the username).**",
+                    classes: ["system", "error"]
+                });
+
+                return;
+            }
+
+            if (JSON.parse(localStorage.blocked).some(user => user === id)) {
+                createMessage({
+                    content: `**This user is already blocked.**`,
+                    classes: ["system", "error"]
+                });
+
+                return;
+            }
+
+            localStorage.setItem("blocked", JSON.stringify([...JSON.parse(localStorage.getItem("blocked") ?? "[]"), args[0]]));
+
+            createMessage({
+                content: `The user <strong>${members.find(m => m.id === id).user}</strong> is now blocked.`,
+                classes: ["system", "info"],
+                allowHtml: true
+            });
+        }
+    },
+    {
+        name: "unblock",
+        description: "Unblocks a blocked user by ID. Use /list to retrieve user IDs.",
+        exec: ({ args }) => {
+            const id = args[1];
+
+            if (!id) {
+                createMessage({
+                    content: "**No user ID specified to unblock. You can find user IDs with /list (NOT the username).**",
+                    classes: ["system", "error"]
+                });
+
+                return;
+            }
+
+            if (!JSON.parse(localStorage.blocked).some(user => user === id)) {
+                createMessage({
+                    content: `**This user is not blocked.**`,
+                    classes: ["system", "error"]
+                });
+
+                return;
+            }
+
+            localStorage.setItem("blocked", JSON.stringify(JSON.parse(localStorage.getItem("blocked") ?? "[]").filter(user => user !== id)));
+
+            createMessage({
+                content: `The user <strong>${members.find(m => m.id === id).user}</strong> is now unblocked.`,
+                classes: ["system", "info"],
+                allowHtml: true
+            });
         }
     }
 ]
@@ -50,12 +151,12 @@ function createMessage(params) {
     let blocked = localStorage.getItem("blocked") ?? "[]";
     blocked = JSON.parse(blocked);
 
-    if(opts.id && blocked.includes(opts.id)) return;
-    
+    if (opts.id && blocked.includes(opts.id)) return;
+
     const msg = document.createElement("div");
     msg.className = "message";
     msg.classList.add(...opts.classes);
-    if(!opts.classes.includes("system")) {
+    if (!opts.classes.includes("system")) {
         msg.innerHTML = `
             <div class="sig">
                 <span class="time">${new Date(Date.parse(opts.date)).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
@@ -84,7 +185,7 @@ function createMessage(params) {
     //TODO: Context menu
     msg.addEventListener('contextmenu', e => {
         e.preventDefault();
-        if(opts.id) contextMenu(opts.id);
+        if (opts.id) contextMenu(opts.id);
     });
     messageList.appendChild(msg);
     messageList.scrollTo(0, messageList.scrollHeight);
@@ -126,7 +227,7 @@ const socket = io(API_URL, {
 window.socket = socket;
 socket.on("connect", () => {
     // Add the blocked array if its not already done
-    if(!localStorage.getItem("blocked")) localStorage.setItem("blocked", "[]");
+    if (!localStorage.getItem("blocked")) localStorage.setItem("blocked", "[]");
     // Nickname
     let username = localStorage.getItem("nickname") ?? prompt("Enter username");
     if (!username || username.length < 1 || username.length > 18) {
@@ -150,7 +251,7 @@ socket.on("connect", () => {
     socket.once("auth-complete", async (userId, sessionId) => {
         // Join
         socket.on("user-join", (data) => {
-            if(!user) {
+            if (!user) {
                 user = data;
             }
             members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
@@ -239,7 +340,7 @@ function handleSend() {
                 cmd.exec({ socket, args });
             }
         } else {
-            if(messageBox.value.length <= 2048) {
+            if (messageBox.value.length <= 2048) {
                 sendTextMessage(messageBox.value);
             } else {
                 alert("Message > 2048");
@@ -259,18 +360,26 @@ messageBox.addEventListener("keydown", (e) => {
 })
 
 socket.on("connect_error", (err) => {
-    if(!errored) {
+    if (!errored) {
         errored = true;
-        // location.reload();
-        createMessage({ content: "You have been disconnected from the server. Reason can be found on console. [Click here to reconnect](/)", classes: ["system", "error"] });
     }
+
+    createMessage({
+        content: `You have been disconnected from the server. Reason can be found on console. <a onclick="location.reload()">Click here to reconnect</a>`,
+        classes: ["system", "error"],
+        allowHtml: true
+    });
 });
 socket.on('disconnect', () => {
-    if(!errored) {
+    if (!errored) {
         errored = true;
-        // location.reload();
-        createMessage({ content: "You have been disconnected from the server. [Click here to reconnect](/)", classes: ["system", "error"] });
     }
+
+    createMessage({
+        content: `You have been disconnected from the server. <a onclick="location.reload()">Click here to reconnect</a>`,
+        classes: ["system", "error"],
+        allowHtml: true
+    });
 });
 
 export function changeUsername(username = null) {
@@ -299,7 +408,7 @@ export function changeUsername(username = null) {
             // We received a nick change
             socket.on("nick-changed", (res) => {
                 // Checking if it's us
-                if(!changedSuccess && user.session_id === res.session_id) {
+                if (!changedSuccess && user.session_id === res.session_id) {
                     // It's us, clear timeout and set success to true. Also change nickname on html
                     clearTimeout(checkTimeout);
                     changedSuccess = true;
@@ -363,7 +472,7 @@ menuBtn.addEventListener("click", () => {
     Object.assign(ctxMenu.style, {
         right: "10px",
         bottom: "20px",
-    }); 
+    });
 
     // Add menu items
     menuItems.forEach(item => {
@@ -395,7 +504,7 @@ menuBtn.addEventListener("click", () => {
 let currentlySelected = "Chat";
 const mobTabBtns = document.querySelectorAll(".mob-tab-btns button");
 mobTabBtns[0].addEventListener("click", () => {
-    if(currentlySelected !== "Chat") {
+    if (currentlySelected !== "Chat") {
         currentlySelected = "Chat";
         mobTabBtns.forEach(btnToDisable => {
             btnToDisable.classList.remove("active");
@@ -405,7 +514,7 @@ mobTabBtns[0].addEventListener("click", () => {
     }
 });
 mobTabBtns[1].addEventListener("click", () => {
-    if(currentlySelected !== "Members") {
+    if (currentlySelected !== "Members") {
         currentlySelected = "Members";
         mobTabBtns.forEach(btnToDisable => {
             btnToDisable.classList.remove("active");
