@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WINDOWS 96</title>
+        <style>
+            @font-face {
+                font-family: "stdvga";
+                src: url("/fonts/vga.ttf");
+            }
+        </style>
+    </head>
+    <body>
+        <style>
+            body {
+                height: 100vh;
+                width: 100vw;
+                margin: 0px;
+            }
+
+            .error {
+                height: 100%;
+                width: 100%;
+                box-sizing: border-box;
+                display: flex;
+                background: rgb(0,0,128);
+                font-family: stdvga;
+                color: white;
+                user-select: none;
+            }
+
+            .container {
+                width: fit-content;
+                height: fit-content;
+                margin: auto;
+            }
+
+            .title {
+                color: rgb(0,0,128);
+                background-color: rgb(192,192,192);
+                margin-left: auto;
+                margin-right: auto;
+                width: max-content;
+            }
+
+            .desc {
+                max-width: 600px;
+            }
+
+            .instruction {
+                margin-left: auto;
+                margin-right: auto;
+                width: fit-content;
+            }
+            
+            @media (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 120dpi), (min-width: 1180px) {
+                body {
+                    transform: scale(1.69) !important;
+                    overflow: hidden !important;
+                }
+            }
+            
+        </style>
+
+        <div class="error">
+            <div class="container">
+                <div class="title">&nbsp;MsgRoom Custom Server&nbsp;</div>
+                <div class="desc"><br>
+                    404 Not Found.<br>
+                    <br>
+                    * Press any key to terminate your current session.<br>
+                    * Press CTRL+ALT+DEL again to restart your computer. You will lose all unsaved information in all applications.<br>
+                    <br>
+                </div>
+                <div class="instruction">Press any key to continue _</div>
+            </div>
+        </div>
+
+        <script>
+            document.body.onkeydown = function(e) {
+                window.location.href = "/";
+            }
+        </script>
+    </body>
+</html>

@@ -64,7 +64,7 @@ if (ARGUMENTS.options.some(o => o.name === "client")) {
             if (error) {
                 if (error.code == 'ENOENT') {
                     fs.readFile('./web/404.html', function (error, content) {
-                        res.writeHead(200, { 'Content-Type': contentType });
+                        res.writeHead(200, { 'Content-Type': 'text/html' });
                         res.end(content, 'utf-8');
                     });
                 } else if (error.code == 'EISDIR') {
