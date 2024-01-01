@@ -119,7 +119,11 @@ export class MRServer {
     }
 
     static getIDsFromSocket(socket) {
-        const hash = crypto.createHash('md5').update(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress).digest('hex').toUpperCase();
+        return getIDsFromIP(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress);
+    }
+
+    static getIDsFromIP(ip) {
+        const hash = crypto.createHash('md5').update(ip).digest('hex').toUpperCase();
         const id = hash.slice(0, 32);
 
         return id;
@@ -226,6 +230,13 @@ export class MRServer {
         this.server.on("request", this.#handleApi.bind(this)); // <- Handle connections for the API
     }
 
+    isIpBlacklisted(ip) {
+        let id = MRServer.getIDsFromIP(ip);
+        if(this.db.ipwhitelist.includes(id)) return false;
+        //TODO: ip blacklist
+        return false;
+    }
+
     /**
      * Handle connections from clients
      * @param {import("socket.io").Socket} socket The connecting socket
@@ -253,7 +264,7 @@ export class MRServer {
                 msgroom_user.user = auth.user;
             }
 
-            let { admins, bots, banned } = this.db;
+            let { admins, bots, banned, shadowbanned, ipwhitelist } = this.db;
 
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
@@ -264,7 +275,11 @@ export class MRServer {
             }
 
             if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
-                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong.</span> " + msgroom_user.id);
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> " + msgroom_user.id);
+                socket.disconnect();
+                return;
+            } else if (this.isIpBlacklisted(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress)) {
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> " + msgroom_user.id);
                 socket.disconnect();
                 return;
             } else {
@@ -278,6 +293,8 @@ export class MRServer {
                     session_id: '',
                     date: new Date().toUTCString()
                 });
+
+                if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
 
                 this.io.emit("user-join", {
                     user: msgroom_user.user,
@@ -298,6 +315,7 @@ export class MRServer {
              * On message reception, handle it
              */
             socket.on("change-user", (username) => {
+                if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
                 if (messagesPerSecond <= 1) {
                     if (
                         username.length > 1 ||
@@ -325,6 +343,15 @@ export class MRServer {
                 let log = "Admin Action";
                 let { admins, banned } = this.db;
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
+
+                if(!authed && args[1] !== "auth") {
+                    socket.emit("sys-message", {
+                        type: "error",
+                        content: 'Authorization check failed.'
+                    });
+                    return;
+                };
+
                 log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
 
                 if (args[0] === "a") {
@@ -341,11 +368,10 @@ export class MRServer {
                                         "/a status [id]: Status of user id, otherwise shows your own",
                                         "/a ban &lt;id&gt;: ban a user",
                                         "/a unban &lt;id&gt;: unban a user",
-                                        "----- NOT DONE -----",
                                         "/a shadowban &lt;id&gt;: shadowban a user",
                                         "/a shadowunban &lt;id&gt;: shadowunban a user",
                                         "/a whitelist &lt;id&gt;: whitelist a user from the IP check",
-                                        "/a disconnect &lt;id&gt;: disconnect a user -- except this, its done",
+                                        "/a disconnect &lt;id&gt;: disconnect a user",
                                         "",
                                         "IDs can be obtained from /list."
                                     ].join("<br />")
@@ -363,8 +389,6 @@ export class MRServer {
 
                         const key = args[2];
                         const keySet = Object.entries(admins).find(k => k[0] === key);
-
-                        console.log(keySet, key);
 
                         if (keySet) {
                             admins[keySet[0]].push(msgroom_user.id);
@@ -461,6 +485,77 @@ export class MRServer {
                                 content: "Please put the ID"
                             });
                         }
+                    } else if (args[1] === "shadowban") {
+                        if (args[2]) {
+                            let targetUsers = {};
+                            this.USERS.forEach((value, key) => {
+                                if (value.data.id === args[2]) {
+                                    targetUsers[value.data.session_id] = value;
+                                }
+                            });
+                            if (targetUsers.length < 1) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "User doesn't exist"
+                                });
+                                return;
+                            } else {
+                                Object.keys(targetUsers).forEach(key => {
+                                    shadowbanned.push(targetUsers[key].data.id);
+                                    this.saveDb();
+                                    targetUsers[key].socket.disconnect();
+                                });
+                                socket.emit("sys-message", {
+                                    type: "info",
+                                    content: "User shadowbanned"
+                                });
+                            }
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "shadowunban") {
+                        if (args[2]) {
+                            for (var i = 0; i < shadowbanned.length; i++) {
+                                if (args[2] === shadowbanned[i]) {
+                                    shadowbanned.splice(i, 1);
+                                    break;
+                                }
+                            }
+                            this.saveDb();
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "User shadowunbanned"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "whitelist") {
+                        if (args[2]) {
+                            if(ipwhitelist.includes(args[2])) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "User already whitelisted"
+                                });
+                                return;
+                            };
+                            ipwhitelist.push(args[2]);
+                            this.saveDb();
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "User whitelisted"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
                     } else if (args[1] === "disconnect") {
                         if (args[2]) {
                             let targetUsers = {};
@@ -509,6 +604,7 @@ export class MRServer {
             socket.on("message", data => {
                 // if (!data.type) return;
                 if (!data.content) return;
+                if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
                 if (messagesPerSecond <= 1) {
                     if (data.content.length <= 2048) {
                         messagesPerSecond++;
@@ -534,6 +630,8 @@ export class MRServer {
             socket.on("disconnect", () => {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
+
+                if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
 
                 this.io.emit("user-leave", {
                     user: msgroom_user.user,
