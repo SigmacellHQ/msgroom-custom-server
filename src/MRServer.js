@@ -97,9 +97,11 @@ export class MRServer {
             url: "/bots/list",
             method: "GET",
 
-            async handler(req, res) {
+            async handler() {
+                console.log(this.db.bots)
+
                 return ({
-                    bots: [...this.BOTS.values()].map(bot => bot.data)
+                    bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id))
                 });
             }
         },
