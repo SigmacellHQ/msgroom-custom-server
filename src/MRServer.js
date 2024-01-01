@@ -575,8 +575,8 @@ export class MRServer {
 
         console.log(`[${endpoint ? '✓' : '✗'}|API] ${req.method} ${fetchURL}`);
 
-        // Set the content type
-        res.setHeader("Content-Type", "application/json");
+        // Set the content type without sending the response
+        res.writeHead(200, { 'Content-Type': 'application/json' });
 
         // Verify if the request needs auth then handle it
         if (endpoint.needsAuth && this.#handleAuth(req, res)) return;
@@ -586,7 +586,8 @@ export class MRServer {
 
         // Handle the request
         const data = await endpoint.handler.call(this, req, res, queryParams);
-        if (res.closed) return;
+
+        if (res.writableEnded) return;
         res.end(JSON.stringify(data));
     }
 
