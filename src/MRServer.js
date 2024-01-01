@@ -232,7 +232,7 @@ export class MRServer {
 
     isIpBlacklisted(ip) {
         let id = MRServer.getIDsFromIP(ip);
-        if(this.db.ipwhitelist.includes(id)) return false;
+        if (this.db.ipwhitelist.includes(id)) return false;
         //TODO: ip blacklist
         return false;
     }
@@ -344,7 +344,7 @@ export class MRServer {
                 let { admins, banned } = this.db;
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
 
-                if(!authed && args[1] !== "auth") {
+                if (!authed && args[1] !== "auth") {
                     socket.emit("sys-message", {
                         type: "error",
                         content: 'Authorization check failed.'
@@ -365,6 +365,7 @@ export class MRServer {
                                         "", "",
                                         "&lt;item&gt; denotes required, [item] for optional.<br><br>",
                                         "/a help: this thing",
+                                        "/a disauth: disauthenticate yourself from staff members",
                                         "/a status [id]: Status of user id, otherwise shows your own",
                                         "/a ban &lt;id&gt;: ban a user",
                                         "/a unban &lt;id&gt;: unban a user",
@@ -382,7 +383,7 @@ export class MRServer {
                         if (authed) {
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: 'You are already authentificated.'
+                                content: 'You are already authenticated.'
                             });
                             return;
                         }
@@ -402,7 +403,7 @@ export class MRServer {
 
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: 'You are now authentificated as a staff member. Rejoin to make people see you\'re staff.'
+                                content: 'You are now logged in as a staff member.'
                             });
                         } else {
                             socket.emit("sys-message", {
@@ -410,6 +411,32 @@ export class MRServer {
                                 content: 'Authorization failed.'
                             });
                         }
+                    } else if (args[1] === "disauth") {
+                        if (!authed) {
+                            return;
+                        }
+
+                        // Filter every keys with the user id
+                        const keys = Object.entries(admins).filter(k => k[1].includes(msgroom_user.id));
+
+                        // Remove the user id from every key
+                        keys.forEach(k => {
+                            admins[k[0]] = k[1].filter(id => id !== msgroom_user.id);
+                            this.saveDb();
+                        });
+
+                        // Send a tag-remove event
+                        this.io.emit("user-update", {
+                            type: "tag-remove",
+                            tag: "staff",
+                            user: msgroom_user.session_id
+                        });
+
+                        // Send a sys-message
+                        socket.emit("sys-message", {
+                            type: "info",
+                            content: 'You are now disauthenticated.'
+                        })
                     } else if (args[1] === "status") {
                         let targetUser = { data: msgroom_user, socket: socket };
 
@@ -537,7 +564,7 @@ export class MRServer {
                         }
                     } else if (args[1] === "whitelist") {
                         if (args[2]) {
-                            if(ipwhitelist.includes(args[2])) {
+                            if (ipwhitelist.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
                                     content: "User already whitelisted"
