@@ -79,6 +79,120 @@ export class MRServer {
             }
         },
 
+        /*** Users ***/
+        {
+            url: "/users/list",
+            method: "GET",
+
+            async handler(req, res) {
+                return ({
+                    users: [...this.USERS.values()].map(user => user.data)
+                })
+            }
+        },
+
+        /*** Bots ***/
+        {
+            url: "/bots/list",
+            method: "GET",
+
+            async handler(req, res) {
+                return ({
+                    bots: [...this.BOTS.values()].map(bot => bot.data)
+                });
+            }
+        },
+
+        /*** User specific ***/
+        {
+            url: "/user/info",
+            method: "GET",
+
+            async handler(req, res, data) {
+                const user = this.USERS.get(data.get("id"));
+
+                console.debug(this.USERS)
+
+                if (user) {
+                    return ({
+                        user: user.data
+                    });
+                }
+
+                return ({
+                    success: false
+                });
+            }
+        },
+        {
+            url: "/user/disconnect",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                const user = this.USERS.get(data.get("id"));
+                let success = false;
+
+                if (user) {
+                    user.socket.disconnect();
+                    this.USERS.delete(data.get("id"));
+
+                    success = true;
+                }
+
+                return ({
+                    success
+                })
+            }
+        },
+        {
+            url: "/user/ban",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                const id = data.get("id");
+                const user = [...this.USERS].find(([_, user]) => user.data.id === id)?.[1];
+                let success = false;
+
+                if (user) {
+                    this.db.banned.push(user.data.id);
+                    await this.saveDb();
+
+                    user.socket.disconnect();
+
+                    console.log(this.USERS);
+
+                    success = true;
+                }
+
+                return ({
+                    success
+                })
+            }
+        },
+        {
+            url: "/user/unban",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                const id = data.get("id");
+                let success = false;
+
+                if (this.db.banned.includes(id)) {
+                    this.db.banned = this.db.banned.filter(bannedID => bannedID !== id);
+                    await this.saveDb();
+
+                    success = true;
+                }
+
+                return ({
+                    success
+                });
+            }
+        },
+
         /*** Message ***/
         {
             url: "/message/send",
@@ -103,7 +217,7 @@ export class MRServer {
                     success
                 });
             }
-        }
+        },
     ]
 
     static randID() {
@@ -250,7 +364,6 @@ export class MRServer {
             sentUsername = true;
 
             const msgroom_user = this.#getUserData(socket);
-            this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
 
             if (
                 !auth.user ||
@@ -277,12 +390,17 @@ export class MRServer {
             if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> " + msgroom_user.id);
                 socket.disconnect();
+
                 return;
             } else if (this.isIpBlacklisted(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress)) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> " + msgroom_user.id);
                 socket.disconnect();
+
                 return;
             } else {
+                // Add user to database
+                this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
+
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
                 socket.emit("message", {
                     type: 'text',
