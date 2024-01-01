@@ -182,6 +182,27 @@ socket.on("connect", () => {
                 case "tag-add": {
                     if (!data.tag) break;
 
+                    members = members.map(member => {
+                        if (member.session_id === data.user) {
+                            member.flags.push(data.tag);
+                        }
+                        return member;
+                    });
+
+                    reloadMemberList();
+                    break;
+                }
+
+                case "tag-remove": {
+                    if (!data.tag) break;
+
+                    members = members.map(member => {
+                        if (member.session_id === data.user) {
+                            member.flags = member.flags.filter(flag => flag !== data.tag);
+                        }
+                        return member;
+                    });
+
                     reloadMemberList();
                     break;
                 }
