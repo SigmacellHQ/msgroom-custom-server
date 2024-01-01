@@ -119,7 +119,7 @@ export class MRServer {
     }
 
     static getIDsFromSocket(socket) {
-        return getIDsFromIP(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress);
+        return MRServer.getIDsFromIP(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress);
     }
 
     static getIDsFromIP(ip) {
