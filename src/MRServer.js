@@ -37,7 +37,7 @@ export class MRServer {
         {
             url: "/keys/add",
             needsAuth: true,
-            method: "POST",
+            method: "GET",
 
             async handler(req, res, data) {
                 const keys = this.db.admins;
@@ -59,7 +59,7 @@ export class MRServer {
         {
             url: "/keys/delete",
             needsAuth: true,
-            method: "POST",
+            method: "GET",
 
             async handler(req, res, data) {
                 const keys = this.db.admins;
@@ -83,7 +83,7 @@ export class MRServer {
         {
             url: "/message/send",
             needsAuth: true,
-            method: "POST",
+            method: "GET",
 
             async handler(req, res, data) {
                 let success = false;
@@ -659,6 +659,9 @@ export class MRServer {
         if (!req.url.startsWith(`${API_URL}/`)) return;
 
         const [fetchURL, query] = req.url.slice(API_URL.length).split("?");
+
+        console.debug(fetchURL, query);
+
         const endpoint = this.API_ENDPOINTS.find(e => e.url === fetchURL && e.method === req.method);
 
         // Check if the endpoint exists
