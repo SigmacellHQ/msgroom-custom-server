@@ -290,6 +290,87 @@ export function changeUsername(username = null) {
     }
 }
 
+// Bottom Right menu:
+const menuItems = [
+    {
+        label: "Reset Blocked",
+        type: "item",
+        action: () => {
+            const confirm = confirm("This will reset your blocked users. Are you sure?");
+            if (confirm) localStorage.setItem("blocked", "[]");
+        }
+    },
+    {
+        label: "Clear Messages",
+        type: "item",
+        action: () => {
+            messageList.innerHTML = "";
+        }
+    },
+    {
+        type: "separator",
+    },
+    {
+        label: "Credits 🡕",
+        type: "item",
+        action: () => {
+            window.open("credits/", "_blank");
+        }
+    },
+    {
+        label: "Github Repository 🡕",
+        type: "item",
+        action: () => {
+            window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
+        }
+    }
+]
+
+const menuBtn = document.querySelector(".menu-btn");
+let ctxMenu = null;
+menuBtn.addEventListener("click", () => {
+    if (ctxMenu) {
+        ctxMenu.remove();
+        ctxMenu = null;
+        return;
+    }
+
+    // Create a context menu
+    ctxMenu = document.createElement("div");
+    ctxMenu.className = "ctx-menu";
+
+    Object.assign(ctxMenu.style, {
+        right: "10px",
+        bottom: "20px",
+    }); 
+
+    // Add menu items
+    menuItems.forEach(item => {
+        if (item.type === "separator") {
+            const sep = document.createElement("div");
+            sep.className = "sep";
+
+            ctxMenu.appendChild(sep);
+        } else if (item.type === "item") {
+            const itemEl = document.createElement("div");
+            itemEl.className = "item";
+            itemEl.innerText = item.label;
+
+            itemEl.addEventListener("click", () => {
+                item.action();
+
+                ctxMenu.remove();
+                ctxMenu = null;
+            });
+
+            ctxMenu.appendChild(itemEl);
+        }
+    });
+
+    document.body.appendChild(ctxMenu);
+});
+
+// Mobile support
 let currentlySelected = "Chat";
 const mobTabBtns = document.querySelectorAll(".mob-tab-btns button");
 mobTabBtns[0].addEventListener("click", () => {

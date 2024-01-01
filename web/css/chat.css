@@ -310,19 +310,12 @@ code {
     border-bottom: 1px solid #eee;
 }
 
-#credits, #resetBlocked {
+#menu {
     position: fixed;
+
+    bottom: 9px;
+    right: 10px;
 
     font-family: "nouveaux", sans-serif;
     font-size: 8px;
-}
-
-#credits {
-    bottom: 9px;
-    right: 10px;
-}
-
-#resetBlocked {
-    bottom: 9px;
-    right: 54px;
 }
