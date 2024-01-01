@@ -322,6 +322,7 @@ export class MRServer {
                         username.length < 18 ||
                         username !== "System"
                     ) {
+                        messagesPerSecond++;
                         this.io.emit("nick-changed", {
                             oldUser: msgroom_user.user,
                             newUser: username,
