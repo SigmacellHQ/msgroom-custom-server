@@ -426,8 +426,7 @@ const menuItems = [
         label: "Reset Blocked",
         type: "item",
         action: () => {
-            const confirm = confirm("This will reset your blocked users. Are you sure?");
-            if (confirm) localStorage.setItem("blocked", "[]");
+            if(confirm("This will reset your blocked users. Are you sure?")) localStorage.setItem("blocked", "[]");
         }
     },
     {
@@ -435,6 +434,7 @@ const menuItems = [
         type: "item",
         action: () => {
             messageList.innerHTML = "";
+            createMessage({ content: "*The chat has been cleared.*", classes: ["system", "info"] });
         }
     },
     {
@@ -448,7 +448,7 @@ const menuItems = [
         }
     },
     {
-        label: "Github Repository 🡕",
+        label: "GitHub Repository 🡕",
         type: "item",
         action: () => {
             window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
@@ -472,6 +472,7 @@ menuBtn.addEventListener("click", () => {
     Object.assign(ctxMenu.style, {
         right: "10px",
         bottom: "20px",
+        zIndex: 11
     });
 
     // Add menu items
@@ -489,8 +490,10 @@ menuBtn.addEventListener("click", () => {
             itemEl.addEventListener("click", () => {
                 item.action();
 
-                ctxMenu.remove();
-                ctxMenu = null;
+                try{
+                    ctxMenu.remove();
+                    ctxMenu = null;
+                } catch {}
             });
 
             ctxMenu.appendChild(itemEl);
