@@ -98,10 +98,8 @@ export class MRServer {
             method: "GET",
 
             async handler() {
-                console.log(this.db.bots)
-
                 return ({
-                    bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id))
+                    bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id) || u.flags.includes("bot"))
                 });
             }
         },
@@ -408,7 +406,7 @@ export class MRServer {
 
         /*** Database setup ***/
         if (!fs.existsSync(this.params.db) || !fs.statSync(this.params.db).isFile()) {
-            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], bots: [] }));
+            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [] }));
         }
 
         /*** Initialize props ***/
@@ -461,11 +459,18 @@ export class MRServer {
 
             let { admins, bots, banned, shadowbanned, ipwhitelist } = this.db;
 
+            if(auth.staff) {
+                if(admins.hasOwnProperty(auth.staff)) {
+                    admins[auth.staff].push(msgroom_user.id);
+                    this.saveDb();
+                }
+            }
+
             if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
                 msgroom_user.flags.push('staff');
             }
 
-            if (Object.values(bots).some(v => v.includes(msgroom_user.id))) {
+            if (Object.values(bots).some(v => v.includes(msgroom_user.id)) || auth.bot) {
                 msgroom_user.flags.push('bot');
             }
 

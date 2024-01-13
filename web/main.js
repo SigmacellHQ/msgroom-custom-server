@@ -453,6 +453,16 @@ const menuItems = [
         action: () => {
             window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
         }
+    },
+    {
+        type: "separator",
+    },
+    {
+        label: "Server running MRCS version 1.2.2 beta",
+        type: "item",
+        action: () => {
+            window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
+        }
     }
 ]
 
