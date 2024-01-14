@@ -222,8 +222,7 @@ var errored = false;
 // Socket
 var user = null;
 const socket = io(API_URL, {
-    reconnection: false,
-    transports: [ "polling" ]
+    reconnection: false
 });
 window.socket = socket;
 socket.on("connect", () => {
