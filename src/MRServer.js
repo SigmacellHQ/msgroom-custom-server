@@ -512,7 +512,7 @@ export class MRServer {
                     content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.',
                     user: 'System',
                     color: 'rgb(0, 0, 128)',
-                    id: '',
+                    id: 'KPSAFU',
                     session_id: '',
                     date: new Date().toUTCString()
                 });
