@@ -242,7 +242,16 @@ socket.on("connect", () => {
         reloadMemberList();
     })
     // Authentication
-    socket.emit("auth", { user: username });
+    let loginkey = localStorage.getItem("loginkey") ?? null;
+    socket.emit("auth", { user: username, loginkey: loginkey });
+
+    socket.once("mrcs-error", async (err) => {
+        if(err === "loginkey") {
+            loginkey = prompt("This MRCS instance requires you to put a loginkey. Please put one to proceed.\n\nDon't have one? Ask the owner of this MRCS instance to get one.");
+            localStorage.setItem("loginkey", loginkey);
+            if(loginkey) location.reload();
+        }
+    });
 
     socket.once("auth-error", async (content) => {
         createMessage({ content, classes: ["system", "error"] });
@@ -438,6 +447,16 @@ const menuItems = [
         }
     },
     {
+        label: "Delete Login Key",
+        type: "item",
+        action: () => {
+            if(confirm("Are you sure? You will still be able to re-login using it.")) {
+                localStorage.setItem("loginkey", null);
+                location.reload();
+            }
+        }
+    },
+    {
         type: "separator",
     },
     {
@@ -453,6 +472,14 @@ const menuItems = [
         action: () => {
             window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
         }
+    },
+    {
+        type: "separator",
+    },
+    {
+        label: "Server running MRCS version 1.2.2",
+        type: "item",
+        action: () => {}
     }
 ]
 
