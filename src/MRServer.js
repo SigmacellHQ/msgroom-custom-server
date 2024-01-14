@@ -757,9 +757,9 @@ export class MRServer {
                                 return;
                             } else {
                                 Object.keys(targetUsers).forEach(key => {
+                                    targetUsers[key].socket.disconnect();
                                     shadowbanned.push(targetUsers[key].data.id);
                                     this.saveDb();
-                                    targetUsers[key].socket.disconnect();
                                 });
                                 socket.emit("sys-message", {
                                     type: "info",
