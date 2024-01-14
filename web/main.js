@@ -276,9 +276,9 @@ socket.on("connect", () => {
         });
 
         // Message handling
-        socket.on("message", ({ user, content, id, color, date }) => {
-            const flags = members.find(member => member.id === id)?.flags || [];
-            createMessage({ user, content, id, flags, color, date });
+        socket.on("message", ({ user, content, id, session_id, color, date }) => {
+            const flags = members.find(member => member.session_id === session_id)?.flags || [];
+            createMessage({ user, content, id, session_id, flags, color, date });
         });
 
         // System message handling
