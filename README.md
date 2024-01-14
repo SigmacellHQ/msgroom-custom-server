@@ -34,6 +34,7 @@ On the terminal, you should see the Arguments, and the url to visit your custom 
 ## CLI Options
 - `--client`: Starts the client ui server
 - `--random-ids`: Randomizes user ids
+- `--require-loginkeys`: Requires login keys to connect
 - `--db-file <PATH>`: Sets the path to the JSON db file
 - `--admin-secret <SECRET>`: Sets the admin secret
 - `--api-url <URL>`: Sets the api endpoint
@@ -47,8 +48,8 @@ const client = new Client("TestBot", [ "!" ]);
 Now, it's really easy, just add a new argument to Client with an object containing the arguments \
 If you don't understand anything, just do it like this:
 ```js
-//                                                         <DOMAIN>  <PORT>
-const client = new Client("TestBot", [ "!" ], {server: "wss://example.com:4096"});
+//                                                             <DOMAIN>   <PORT>
+const client = new Client("TestBot", [ "!" ], { server: "wss://example.com:4096" });
 ```
 **Congrats! 🎉** Your bot should now work with MRCS!
 

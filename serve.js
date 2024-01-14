@@ -33,6 +33,7 @@ const server = new MRServer({
     adminSecret: ARGUMENTS.options.find(o => o.name === "admin-secret")?.value || "very_secret",
     randomIDs: (ARGUMENTS.options.some(o => o.name === "random-ids")),
     apiURL: ARGUMENTS.options.find(o => o.name === "api-url")?.value || "/api",
+    requireLoginKeys: (ARGUMENTS.options.some(o => o.name === "require-loginkeys")),
     server: HTTP_SERVER
 });
 

@@ -400,13 +400,14 @@ export class MRServer {
 
             // Miscs
             randomIDs: false,
+            requireLoginKeys: false,
 
             ...params
         };
 
         /*** Database setup ***/
         if (!fs.existsSync(this.params.db) || !fs.statSync(this.params.db).isFile()) {
-            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [] }));
+            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [], ipblacklist: [], loginkeys: {} }));
         }
 
         /*** Initialize props ***/
@@ -427,7 +428,7 @@ export class MRServer {
     isIpBlacklisted(ip) {
         let id = MRServer.getIDsFromIP(ip);
         if (this.db.ipwhitelist.includes(id)) return false;
-        //TODO: ip blacklist
+        if (this.db.ipblacklist.includes(id)) return true;
         return false;
     }
 
@@ -457,7 +458,22 @@ export class MRServer {
                 msgroom_user.user = auth.user;
             }
 
-            let { admins, bots, banned, shadowbanned, ipwhitelist } = this.db;
+            let { admins, banned, shadowbanned, bots, ipwhitelist, ipblacklist, loginkeys } = this.db;
+
+            if (this.params.requireLoginKeys && !auth.loginkey) {
+                socket.emit("mrcs-error", "loginkey");
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Missing Login Key.</span> " + msgroom_user.id + "<br>Add a loginkey argument to your auth emittion. (Ask the owner of this MRCS instance to get one)");
+                socket.disconnect();
+
+                return;
+            }
+            if(this.params.requireLoginKeys && !loginkeys.includes(auth.loginkey)) {
+                socket.emit("mrcs-error", "loginkey");
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Unknown Login Key.</span> " + msgroom_user.id + "<br>Your loginkey argument on auth emittion does not exist. (Ask the owner of this MRCS instance to get one)");
+                socket.disconnect();
+
+                return;
+            }
 
             if(auth.staff) {
                 if(admins.hasOwnProperty(auth.staff)) {
@@ -579,6 +595,10 @@ export class MRServer {
                                         "/a shadowunban &lt;id&gt;: shadowunban a user",
                                         "/a whitelist &lt;id&gt;: whitelist a user from the IP check",
                                         "/a disconnect &lt;id&gt;: disconnect a user",
+                                        "--- MRCS-only commands ---",
+                                        "/a blacklist &lt;id&gt;: blacklist a user from the IP check",
+                                        "/a addloginkey &lt;key&gt;: create a loginkey (requires the --require-loginkeys argument on server launch)",
+                                        "/a delloginkey &lt;key&gt;: delete a loginkey",
                                         "",
                                         "IDs can be obtained from /list."
                                     ].join("<br />")
@@ -770,6 +790,12 @@ export class MRServer {
                         }
                     } else if (args[1] === "whitelist") {
                         if (args[2]) {
+                            for (var i = 0; i < ipblacklist.length; i++) {
+                                if (args[2] === ipblacklist[i]) {
+                                    ipblacklist.splice(i, 1);
+                                    break;
+                                }
+                            }
                             if (ipwhitelist.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
@@ -824,6 +850,80 @@ export class MRServer {
                             socket.emit("sys-message", {
                                 type: "error",
                                 content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "blacklist") {
+                        if (args[2]) {
+                            for (var i = 0; i < ipwhitelist.length; i++) {
+                                if (args[2] === ipwhitelist[i]) {
+                                    ipwhitelist.splice(i, 1);
+                                    break;
+                                }
+                            }
+                            if (ipblacklist.includes(args[2])) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "User already blacklisted"
+                                });
+                                return;
+                            };
+                            ipblacklist.push(args[2]);
+                            this.saveDb();
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "User blacklisted"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the ID"
+                            });
+                        }
+                    } else if (args[1] === "addloginkey") {
+                        if (args[2]) {
+                            if (loginkeys.includes(args[2])) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "Login Key already exists"
+                                });
+                                return;
+                            };
+                            loginkeys.push(args[2]);
+                            this.saveDb();
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "Login Key created"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the key"
+                            });
+                        }
+                    } else if (args[1] === "delloginkey") {
+                        if (args[2]) {
+                            if (!loginkeys.includes(args[2])) {
+                                socket.emit("sys-message", {
+                                    type: "error",
+                                    content: "Login Key doesn't exist"
+                                });
+                                return;
+                            };
+                            for (var i = 0; i < loginkeys.length; i++) {
+                                if (args[2] === loginkeys[i]) {
+                                    loginkeys.splice(i, 1);
+                                    break;
+                                }
+                            }
+                            this.saveDb();
+                            socket.emit("sys-message", {
+                                type: "info",
+                                content: "Login Key deleted"
+                            });
+                        } else {
+                            socket.emit("sys-message", {
+                                type: "error",
+                                content: "Please put the key"
                             });
                         }
                     }
