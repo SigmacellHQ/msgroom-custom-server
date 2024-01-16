@@ -86,6 +86,7 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res) {
+                return "re-enabling soon";
                 return ({
                     users: [...this.USERS.values()].map(user => user.data)
                 })
@@ -98,6 +99,7 @@ export class MRServer {
             method: "GET",
 
             async handler() {
+                return "re-enabling soon";
                 return ({
                     bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id) || u.flags.includes("bot"))
                 });
@@ -110,6 +112,7 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res, data) {
+                return "re-enabling soon";
                 const user = this.USERS.get(data.get("id"));
 
                 console.debug(this.USERS)
