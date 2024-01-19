@@ -402,9 +402,9 @@ export class MRServer {
             // Miscs
             randomIDs: false,
             requireLoginKeys: false,
-
             enableAutoMod: false,
             ratelimit: 2,
+            userLimit: 5,
 
             ...params
         };
@@ -453,6 +453,31 @@ export class MRServer {
 
             const msgroom_user = this.#getUserData(socket);
 
+            if(auth.disconnectAll) {
+                let targetUsers = {};
+                this.USERS.forEach((value, key) => {
+                    if (value.data.id === msgroom_user.id) {
+                        targetUsers[value.data.session_id] = value;
+                    }
+                });
+                Object.keys(targetUsers).forEach(key => {
+                    targetUsers[key].socket.disconnect();
+                });
+            }
+
+            let accs = 0;
+            this.USERS.forEach((value, key) => {
+                if (value.data.id === msgroom_user.id) {
+                    accs++;
+                }
+            });
+
+            if(accs >= this.params.userLimit) {
+                socket.emit("mrcs-error", "toomuchusers");
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Too Much Users.</span> <code>" + msgroom_user.id + "</code><br>You have joined with too much accounts. Please leave or wait some time.");
+                return;
+            }
+
             if (
                 !auth.user ||
                 auth.user.length < 1 ||
@@ -460,6 +485,8 @@ export class MRServer {
                 auth.user === "System"
             ) {
                 socket.emit("auth-error", "This nickname is not allowed.");
+                socket.disconnect();
+
                 return;
             } else {
                 msgroom_user.user = auth.user;

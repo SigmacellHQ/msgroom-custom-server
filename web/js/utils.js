@@ -67,3 +67,5 @@ function removeCTXMenu() {
     }
     document.body.removeEventListener("click", removeCTXMenu);
 }
+
+export var urlparams = new URLSearchParams(window.location.search);

@@ -1,4 +1,4 @@
-import { sleep, fixXSS, contextMenu } from "./js/utils.js";
+import { sleep, fixXSS, contextMenu, urlparams } from "./js/utils.js";
 
 // Elements
 const sendBtn = document.querySelector(".send");
@@ -281,7 +281,7 @@ socket.on("connect", () => {
     })
     // Authentication
     let loginkey = localStorage.getItem("loginkey") ?? null;
-    socket.emit("auth", { user: username, loginkey: loginkey });
+    socket.emit("auth", { user: username, loginkey: loginkey, disconnectAll: urlparams.has("disconnectAll") });
 
     // Set server info (using on instead of once because maybe an admin command to change)
     socket.on("mrcs-serverinfo", (info) => {
@@ -293,6 +293,9 @@ socket.on("connect", () => {
             loginkey = prompt("This MRCS instance requires you to put a loginkey. Please put one to proceed.\n\nDon't have one? Ask the owner of this MRCS instance to get one.");
             localStorage.setItem("loginkey", loginkey);
             if(loginkey) location.reload();
+        } else if(err === "toomuchusers") {
+            if(confirm("This MRCS instance is telling you that you have too much alt accounts connected. Please leave or wait some time.\n\nClick OK to disconnect every other alt while connecting."))
+                window.location = "?disconnectAll";
         }
     });
 

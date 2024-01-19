@@ -36,6 +36,7 @@ const server = new MRServer({
     requireLoginKeys: (ARGUMENTS.options.some(o => o.name === "require-loginkeys")),
     enableAutoMod: (ARGUMENTS.options.some(o => o.name === "enable-automod")),
     ratelimit: parseInt(ARGUMENTS.options.find(o => o.name === "ratelimit")?.value || 2),
+    userLimit: parseInt(ARGUMENTS.options.find(o => o.name === "user-limit")?.value || 5),
     server: HTTP_SERVER
 });
 
@@ -43,6 +44,8 @@ const server = new MRServer({
 if (ARGUMENTS.options.some(o => o.name === "client")) {
     HTTP_SERVER.on("request", async (req, res) => {
         if (req.url.startsWith(`${server.apiURL}/`) || req.url.startsWith("/socket.io/")) return;
+        if (req.url.includes("?"))
+            req.url = req.url.split("?")[0];
 
         var filePath = './web' + req.url;
 
