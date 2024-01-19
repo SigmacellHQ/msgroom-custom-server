@@ -252,7 +252,10 @@ function textToMD(text, custom = {}, safety = true) {
 
 var errored = false;
 
-var mrcsVer = null;
+var mrcsServerInfo = {
+    ver: null,
+    automod: false
+};
 
 // Socket
 var user = null;
@@ -280,7 +283,9 @@ socket.on("connect", () => {
     let loginkey = localStorage.getItem("loginkey") ?? null;
     socket.emit("auth", { user: username, loginkey: loginkey });
 
-    socket.once("mrcs-version", (ver) => { mrcsVer = ver; });
+    // Set server info (using on instead of once because maybe an admin command to change)
+    socket.on("mrcs-version", (ver) => { mrcsServerInfo.ver = ver; });
+    socket.on("mrcs-automod", (enabled) => { mrcsServerInfo.automod = enabled; });
 
     socket.once("mrcs-error", async (err) => {
         if(err === "loginkey") {
@@ -319,8 +324,8 @@ socket.on("connect", () => {
         });
 
         // System message handling
-        socket.on("sys-message", ({ content, type }) => {
-            createMessage({ content, classes: ["system", type] });
+        socket.on("sys-message", ({ message, type }) => {
+            createMessage({ content: message, classes: ["system", type] });
         });
 
         // User update
@@ -526,7 +531,8 @@ const menuItems = [
         type: "item",
         action: () => {
             alert([
-                "MRCS version " + (mrcsVer || "unknown"),
+                "MRCS version " + (mrcsServerInfo.ver || "unknown"),
+                "AutoMod enabled: " + (mrcsServerInfo.automod.toString() || "unknown"),
             ].join("\n"));
         }
     }

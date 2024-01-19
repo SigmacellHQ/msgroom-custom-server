@@ -34,6 +34,8 @@ const server = new MRServer({
     randomIDs: (ARGUMENTS.options.some(o => o.name === "random-ids")),
     apiURL: ARGUMENTS.options.find(o => o.name === "api-url")?.value || "/api",
     requireLoginKeys: (ARGUMENTS.options.some(o => o.name === "require-loginkeys")),
+    enableAutoMod: (ARGUMENTS.options.some(o => o.name === "enable-automod")),
+    ratelimit: parseInt(ARGUMENTS.options.find(o => o.name === "ratelimit")?.value || 2),
     server: HTTP_SERVER
 });
 

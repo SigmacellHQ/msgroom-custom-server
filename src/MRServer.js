@@ -222,7 +222,7 @@ export class MRServer {
 
                     this.io.emit("sys-message", {
                         type,
-                        content
+                        message: content
                     });
                 }
 
@@ -248,7 +248,7 @@ export class MRServer {
                 if (data.has("alert") && timeout > 0) {
                     this.io.emit("sys-message", {
                         type: "info",
-                        content: `**The server will stop in ${timeout} seconds.**`,
+                        message: `**The server will stop in ${timeout} seconds.**`,
                     });
                 }
 
@@ -274,7 +274,7 @@ export class MRServer {
                 if (data.has("alert") && timeout > 0) {
                     this.io.emit("sys-message", {
                         type: "info",
-                        content: `**The server will restart in ${timeout} seconds.**`,
+                        message: `**The server will restart in ${timeout} seconds.**`,
                     });
                 }
 
@@ -403,6 +403,9 @@ export class MRServer {
             randomIDs: false,
             requireLoginKeys: false,
 
+            enableAutoMod: false,
+            ratelimit: 2,
+
             ...params
         };
 
@@ -438,12 +441,16 @@ export class MRServer {
      * @param {import("socket.io").Socket} socket The connecting socket
      */
     #handleSocket(socket) {
+        console.log("New user joining, waiting for auth.");
+        console.log(this.params.ratelimit);
         let messagesPerSecond = 0;
         let sentUsername = false;
 
         socket.once("auth", async (auth) => {
             if (sentUsername) return;
             sentUsername = true;
+
+            console.log("Auth sent: ", JSON.stringify(auth, null, 4));
 
             const msgroom_user = this.#getUserData(socket);
 
@@ -502,9 +509,10 @@ export class MRServer {
 
                 return;
             } else {
-                // Tell the client the MRCS version
-                socket.emit("mrcs-version", "1.3.0");
-                
+                // Tell the client the MRCS server info
+                socket.emit("mrcs-version", "1.3.1");
+                socket.emit("mrcs-automod", this.params.enableAutoMod || false);
+
                 // Add user to database
                 this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "" });
 
@@ -541,7 +549,7 @@ export class MRServer {
              */
             socket.on("change-user", (username) => {
                 if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
-                if (messagesPerSecond <= 1) {
+                if (messagesPerSecond < this.params.ratelimit) {
                     if (
                         username.length > 1 ||
                         username.length < 18 ||
@@ -560,7 +568,7 @@ export class MRServer {
                 } else {
                     socket.emit("sys-message", {
                         type: "error",
-                        content: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
+                        message: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
                     });
                 }
             });
@@ -573,7 +581,7 @@ export class MRServer {
                 if (!authed && args[1] !== "auth") {
                     socket.emit("sys-message", {
                         type: "error",
-                        content: 'Authorization check failed.'
+                        message: 'Authorization check failed.'
                     });
                     return;
                 };
@@ -586,7 +594,7 @@ export class MRServer {
                             if (authed) {
                                 socket.emit("sys-message", {
                                     type: "info",
-                                    content: [
+                                    message: [
                                         "Admin commands list",
                                         "", "",
                                         "&lt;item&gt; denotes required, [item] for optional.<br><br>",
@@ -613,7 +621,7 @@ export class MRServer {
                         if (authed) {
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: 'You are already authenticated.'
+                                message: 'You are already authenticated.'
                             });
                             return;
                         }
@@ -633,12 +641,12 @@ export class MRServer {
 
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: 'You are now logged in as a staff member.'
+                                message: 'You are now logged in as a staff member.'
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: 'Authorization failed.'
+                                message: 'Authorization failed.'
                             });
                         }
                     } else if (args[1] === "disauth") {
@@ -665,7 +673,7 @@ export class MRServer {
                         // Send a sys-message
                         socket.emit("sys-message", {
                             type: "info",
-                            content: 'You are now disauthenticated.'
+                            message: 'You are now disauthenticated.'
                         })
                     } else if (args[1] === "status") {
                         let targetUser = { data: msgroom_user, socket: socket, loginkey: auth.loginkey };
@@ -677,7 +685,7 @@ export class MRServer {
                             if (!targetUser) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User doesn't exist"
+                                    message: "User doesn't exist"
                                 });
                                 return;
                             }
@@ -685,7 +693,7 @@ export class MRServer {
 
                         socket.emit("sys-message", {
                             type: "info",
-                            content: [
+                            message: [
                                 `User status:`,
                                 `ID: <span class="bold-noaa">${targetUser.data.id}</span>`,
                                 `All Flags: <span class="bold-noaa">${JSON.stringify(targetUser.data.flags)}</span>`,
@@ -704,7 +712,7 @@ export class MRServer {
                             if (targetUsers.length < 1) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User doesn't exist"
+                                    message: "User doesn't exist"
                                 });
                                 return;
                             } else {
@@ -715,13 +723,13 @@ export class MRServer {
                                 });
                                 socket.emit("sys-message", {
                                     type: "info",
-                                    content: "User banned"
+                                    message: "User banned"
                                 });
                             }
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "unban") {
@@ -735,12 +743,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "User unbanned"
+                                message: "User unbanned"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "shadowban") {
@@ -754,7 +762,7 @@ export class MRServer {
                             if (targetUsers.length < 1) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User doesn't exist"
+                                    message: "User doesn't exist"
                                 });
                                 return;
                             } else {
@@ -765,13 +773,13 @@ export class MRServer {
                                 this.saveDb();
                                 socket.emit("sys-message", {
                                     type: "info",
-                                    content: "User shadowbanned"
+                                    message: "User shadowbanned"
                                 });
                             }
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "shadowunban") {
@@ -785,12 +793,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "User shadowunbanned"
+                                message: "User shadowunbanned"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "whitelist") {
@@ -804,7 +812,7 @@ export class MRServer {
                             if (ipwhitelist.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User already whitelisted"
+                                    message: "User already whitelisted"
                                 });
                                 return;
                             };
@@ -812,12 +820,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "User whitelisted"
+                                message: "User whitelisted"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "disconnect") {
@@ -839,7 +847,7 @@ export class MRServer {
                             if (targetUsers.length < 1) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User doesn't exist"
+                                    message: "User doesn't exist"
                                 });
                                 return;
                             } else {
@@ -848,13 +856,13 @@ export class MRServer {
                                 });
                                 socket.emit("sys-message", {
                                     type: "info",
-                                    content: "User disconnected"
+                                    message: "User disconnected"
                                 });
                             }
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "blacklist") {
@@ -868,7 +876,7 @@ export class MRServer {
                             if (ipblacklist.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "User already blacklisted"
+                                    message: "User already blacklisted"
                                 });
                                 return;
                             };
@@ -876,12 +884,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "User blacklisted"
+                                message: "User blacklisted"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the ID"
+                                message: "Please put the ID"
                             });
                         }
                     } else if (args[1] === "addloginkey") {
@@ -889,7 +897,7 @@ export class MRServer {
                             if (loginkeys.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "Login Key already exists"
+                                    message: "Login Key already exists"
                                 });
                                 return;
                             };
@@ -897,12 +905,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "Login Key created"
+                                message: "Login Key created"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the key"
+                                message: "Please put the key"
                             });
                         }
                     } else if (args[1] === "delloginkey") {
@@ -910,7 +918,7 @@ export class MRServer {
                             if (!loginkeys.includes(args[2])) {
                                 socket.emit("sys-message", {
                                     type: "error",
-                                    content: "Login Key doesn't exist"
+                                    message: "Login Key doesn't exist"
                                 });
                                 return;
                             };
@@ -923,12 +931,12 @@ export class MRServer {
                             this.saveDb();
                             socket.emit("sys-message", {
                                 type: "info",
-                                content: "Login Key deleted"
+                                message: "Login Key deleted"
                             });
                         } else {
                             socket.emit("sys-message", {
                                 type: "error",
-                                content: "Please put the key"
+                                message: "Please put the key"
                             });
                         }
                     }
@@ -943,7 +951,7 @@ export class MRServer {
                 // if (!data.type) return;
                 if (!data.content) return;
                 if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
-                if (messagesPerSecond <= 1) {
+                if (messagesPerSecond < this.params.ratelimit) {
                     if (data.content.length <= 2048) {
                         messagesPerSecond++;
                         this.io.emit("message", {
@@ -960,7 +968,7 @@ export class MRServer {
                 } else {
                     socket.emit("sys-message", {
                         type: "error",
-                        content: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
+                        message: '<span class="bold-noaa">You are doing this too much - please wait!</span>'
                     });
                 }
             });
