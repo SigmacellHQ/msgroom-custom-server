@@ -9,6 +9,24 @@ const memberList = document.querySelector(".members>.list");
 // Commands
 const COMMANDS = [
     {
+        name: "help",
+        description: "List of commands.",
+        exec: () => {
+            let content = [
+                "**List of commands**",
+                ""
+            ];
+            COMMANDS.forEach(cmd => {
+                if(cmd.name !== "a") content.push("/" + cmd.name + " - " + cmd.description);
+            });
+            createMessage({
+                content: content.join("\n"),
+                classes: ["system", "info"],
+                allowHtml: true
+            });
+        }
+    },
+    {
         name: "about",
         description: "About MsgRoom.",
         exec: () => {
@@ -177,7 +195,7 @@ function createMessage(params) {
             </div>
 
             <div class="content messageContentFix" ${opts.color ? `style="color: ${opts.color};"` : ""}>
-                ${twemoji.parse(textToMD(opts.content))}
+                ${twemoji.parse(textToMD(opts.content, {}, false))}
             </div>
         `;
     }
@@ -195,9 +213,9 @@ function createMessage(params) {
  * Reloads the member list.
  */
 function reloadMemberList() {
-    memberList.innerHTML = "";
+    memberList.innerHTML = `<div class="member" ${user.color ? `style="color: ${user.color};"` : ""}>${user.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(user.user)}</div>`
     members.forEach(member => {
-        memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
+        if(member.session_id !== user.session_id) memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
     });
 }
 
@@ -205,12 +223,27 @@ function reloadMemberList() {
  * Converts text to markdown.
  * @param {String} text The text to convert.
  */
-function textToMD(text, custom = {}) {
-    let newText = text
+function textToMD(text, custom = {}, safety = true) {
+    let newText = text;
+    if(safety) newText = newText.replace(/"/g, "&quot;");
+    newText = newText
+        // Bold
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replaceAll(/__(.*?)__/g, "<strong>$1</strong>")
+
+        // Italic
         .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
-        // .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        .replaceAll(/_(.*?)_/g, "<i>$1</i>")
+
+        // Strike
+        .replaceAll(/~~(.*?)~~/g, "<s>$1</s>")
+
+        // Links
+        .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+
+        // New Line
         .replaceAll("\n", "<br />")
+        .replaceAll("\r", "<br />")
     Object.keys(custom).forEach(key => {
         newText = newText.replaceAll(key, custom[key]);
     });
@@ -218,6 +251,8 @@ function textToMD(text, custom = {}) {
 }
 
 var errored = false;
+
+var mrcsVer = null;
 
 // Socket
 var user = null;
@@ -244,6 +279,8 @@ socket.on("connect", () => {
     // Authentication
     let loginkey = localStorage.getItem("loginkey") ?? null;
     socket.emit("auth", { user: username, loginkey: loginkey });
+
+    socket.once("mrcs-version", (ver) => { mrcsVer = ver; });
 
     socket.once("mrcs-error", async (err) => {
         if(err === "loginkey") {
@@ -345,8 +382,16 @@ function handleSend() {
         if (messageBox.value.startsWith("/")) {
             const args = messageBox.value.slice(1).split(" ");
             const cmd = COMMANDS.find(c => c.name === args[0]);
-            if (cmd) {
+            if(cmd) {
                 cmd.exec({ socket, args });
+            } else {
+                createMessage({
+                    content: [
+                        "Unknown command. **/help** for list of commands",
+                    ].join("\n"),
+                    classes: ["system", "error"],
+                    allowHtml: true
+                });
             }
         } else {
             if (messageBox.value.length <= 2048) {
@@ -477,9 +522,13 @@ const menuItems = [
         type: "separator",
     },
     {
-        label: "Server running MRCS version 1.2.2",
+        label: "Server info",
         type: "item",
-        action: () => {}
+        action: () => {
+            alert([
+                "MRCS version " + (mrcsVer || "unknown"),
+            ].join("\n"));
+        }
     }
 ]
 

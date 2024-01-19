@@ -341,6 +341,7 @@ export class MRServer {
     #isAllowed(req) {
         // Check if Authorization header is present and valid
         const secret = this.params.adminSecret;
+        if(!secret) return false;
         const authHeader = req.headers.authorization;
 
         if (!authHeader || (authHeader !== `Bearer ${secret}`)) {
@@ -396,7 +397,7 @@ export class MRServer {
 
             // API
             apiURL: "/api",
-            adminSecret: "very_secret",
+            adminSecret: null,
 
             // Miscs
             randomIDs: false,
@@ -501,6 +502,9 @@ export class MRServer {
 
                 return;
             } else {
+                // Tell the client the MRCS version
+                socket.emit("mrcs-version", "1.3.0");
+                
                 // Add user to database
                 this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "" });
 

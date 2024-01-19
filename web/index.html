@@ -47,6 +47,43 @@
         .messageContentFix p {
             margin: 0;
         }
+
+        .menu-btn{
+            z-index: 1;
+        }
+
+        .mrcs-notifications{
+            display: none; /* didnt have time to finish */
+            background-color: black;
+            position: fixed;
+            right: 0;
+            width: 170px;
+            height: 100%;
+        }
+
+        .mrcs-notifications>.mrcs-notification{
+            color: white;
+            box-shadow: 0px 0px 6px 2px white;
+            width: 150px;
+            margin-left: 10px;
+        }
+
+        .mrcs-notifications>.mrcs-notification>div>img{
+            display: block;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+
+        .mrcs-notifications>.mrcs-notification>div>div{
+            margin-left: 5px;
+        }
+
+        .mrcs-notifications>.mrcs-notification>div>div>p,
+        .mrcs-notifications>.mrcs-notification>div>div>h3{
+            margin: 0;
+            margin-top: 3px;
+        }
     </style>
 </head>
 
@@ -72,6 +109,18 @@
 
     <div class="mob-tab-btns">
         <button class="active">Chat</button><button>Members</button>
+    </div>
+
+    <div class="mrcs-notifications">
+        <div class="mrcs-notification">
+            <div style="display: flex;">
+                <img src="https://cdn.discordapp.com/avatars/544207551219105792/a_f484d57d5275d2ae0661c0d226fc2352.gif">
+                <div>
+                    <h3>test</h3>
+                    <p>like this</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

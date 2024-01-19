@@ -30,7 +30,7 @@ const MIME_TYPES = new Map([
 // Server Side
 const server = new MRServer({
     db: ARGUMENTS.options.find(o => o.name === "db-file")?.value || "./db.json",
-    adminSecret: ARGUMENTS.options.find(o => o.name === "admin-secret")?.value || "very_secret",
+    adminSecret: ARGUMENTS.options.find(o => o.name === "admin-secret")?.value || null,
     randomIDs: (ARGUMENTS.options.some(o => o.name === "random-ids")),
     apiURL: ARGUMENTS.options.find(o => o.name === "api-url")?.value || "/api",
     requireLoginKeys: (ARGUMENTS.options.some(o => o.name === "require-loginkeys")),
