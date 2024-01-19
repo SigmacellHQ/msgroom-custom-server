@@ -225,7 +225,7 @@ function reloadMemberList() {
  */
 function textToMD(text, custom = {}, safety = true) {
     let newText = text;
-    if(safety) newText = newText.replace(/"/g, "&quot;");
+    if(safety) newText = newText.replaceAll(/"/g, "&quot;");
     newText = newText
         // Bold
         .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -239,7 +239,7 @@ function textToMD(text, custom = {}, safety = true) {
         .replaceAll(/~~(.*?)~~/g, "<s>$1</s>")
 
         // Links
-        .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        .replaceAll(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a style="cursor: pointer;" href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
 
         // New Line
         .replaceAll("\n", "<br />")
