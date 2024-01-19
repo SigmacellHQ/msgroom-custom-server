@@ -86,7 +86,6 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res) {
-                return "re-enabling soon";
                 return ({
                     users: [...this.USERS.values()].map(user => user.data)
                 })
@@ -99,7 +98,6 @@ export class MRServer {
             method: "GET",
 
             async handler() {
-                return "re-enabling soon";
                 return ({
                     bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id) || u.flags.includes("bot"))
                 });
@@ -112,7 +110,6 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res, data) {
-                return "re-enabling soon";
                 const user = this.USERS.get(data.get("id"));
 
                 console.debug(this.USERS)
@@ -478,8 +475,6 @@ export class MRServer {
                 return;
             }
 
-            msgroom_user.loginkey = auth.loginkey;
-
             if(auth.staff) {
                 if(admins.hasOwnProperty(auth.staff)) {
                     admins[auth.staff].push(msgroom_user.id);
@@ -507,7 +502,7 @@ export class MRServer {
                 return;
             } else {
                 // Add user to database
-                this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress });
+                this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "" });
 
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
                 socket.emit("message", {
@@ -669,7 +664,7 @@ export class MRServer {
                             content: 'You are now disauthenticated.'
                         })
                     } else if (args[1] === "status") {
-                        let targetUser = { data: msgroom_user, socket: socket };
+                        let targetUser = { data: msgroom_user, socket: socket, loginkey: auth.loginkey };
 
                         // If user is specified in args
                         if (args[2]) {
@@ -691,7 +686,7 @@ export class MRServer {
                                 `ID: <span class="bold-noaa">${targetUser.data.id}</span>`,
                                 `All Flags: <span class="bold-noaa">${JSON.stringify(targetUser.data.flags)}</span>`,
                                 // `IP: <span class="bold-noaa">${targetUser.ip}</span>`,
-                                `Login Key: <span class="bold-noaa">${JSON.stringify(targetUser.data.loginkey)}</span>`
+                                `Login Key: <span class="bold-noaa">${JSON.stringify(targetUser.loginkey)}</span>`
                             ].join("<br />")
                         });
                     } else if (args[1] === "ban") {
