@@ -55,7 +55,7 @@ const COMMANDS = [
         description: "Clear the chat log.",
         exec: () => {
             messageList.innerHTML = "";
-            createMessage({ content: "The chat has been cleared.", classes: ["system", "info"] });
+            createMessage({ content: "*The chat has been cleared.*", classes: ["system", "info"] });
         }
     },
     {
@@ -253,7 +253,7 @@ function textToMD(text, custom = {}, safety = true) {
 var errored = false;
 
 var mrcsServerInfo = {
-    ver: null,
+    version: null,
     automod: false
 };
 
@@ -284,8 +284,9 @@ socket.on("connect", () => {
     socket.emit("auth", { user: username, loginkey: loginkey });
 
     // Set server info (using on instead of once because maybe an admin command to change)
-    socket.on("mrcs-version", (ver) => { mrcsServerInfo.ver = ver; });
-    socket.on("mrcs-automod", (enabled) => { mrcsServerInfo.automod = enabled; });
+    socket.on("mrcs-serverinfo", (info) => {
+        mrcsServerInfo = info;
+    });
 
     socket.once("mrcs-error", async (err) => {
         if(err === "loginkey") {
@@ -531,7 +532,7 @@ const menuItems = [
         type: "item",
         action: () => {
             alert([
-                "MRCS version " + (mrcsServerInfo.ver || "unknown"),
+                "MRCS version " + (mrcsServerInfo.version || "unknown"),
                 "AutoMod enabled: " + (mrcsServerInfo.automod.toString() || "unknown"),
             ].join("\n"));
         }

@@ -510,8 +510,10 @@ export class MRServer {
                 return;
             } else {
                 // Tell the client the MRCS server info
-                socket.emit("mrcs-version", "1.3.1");
-                socket.emit("mrcs-automod", this.params.enableAutoMod || false);
+                socket.emit("mrcs-serverinfo", {
+                    version: "1.3.1",
+                    automod: this.params.enableAutoMod || false
+                });
 
                 // Add user to database
                 this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "" });
