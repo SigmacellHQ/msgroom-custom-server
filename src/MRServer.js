@@ -469,14 +469,14 @@ export class MRServer {
 
             if (this.params.requireLoginKeys && !auth.loginkey) {
                 socket.emit("mrcs-error", "loginkey");
-                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Missing Login Key.</span> " + msgroom_user.id + "<br>Add a loginkey argument to your auth emittion. (Ask the owner of this MRCS instance to get one)");
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Missing Login Key.</span> <code>" + msgroom_user.id + "</code><br>Add a loginkey argument to your auth emittion. (Ask the owner of this MRCS instance to get one)");
                 socket.disconnect();
 
                 return;
             }
             if(this.params.requireLoginKeys && !loginkeys.includes(auth.loginkey)) {
                 socket.emit("mrcs-error", "loginkey");
-                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Unknown Login Key.</span> " + msgroom_user.id + "<br>Your loginkey argument on auth emittion does not exist. (Ask the owner of this MRCS instance to get one)");
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Unknown Login Key.</span> <code>" + msgroom_user.id + "</code><br>Your loginkey argument on auth emittion does not exist. (Ask the owner of this MRCS instance to get one)");
                 socket.disconnect();
 
                 return;
@@ -498,12 +498,12 @@ export class MRServer {
             }
 
             if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
-                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> " + msgroom_user.id);
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> <code>" + msgroom_user.id + "</code>");
                 socket.disconnect();
 
                 return;
             } else if (this.isIpBlacklisted(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress)) {
-                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> " + msgroom_user.id);
+                socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> <code>" + msgroom_user.id + "</code>");
                 socket.disconnect();
 
                 return;
@@ -520,7 +520,7 @@ export class MRServer {
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
                 socket.emit("message", {
                     type: 'text',
-                    content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.',
+                    content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.\n[GitHub Repository 🡕](https://github.com/nolanwhy/msgroom-custom-server)',
                     user: 'System',
                     color: 'rgb(0, 0, 128)',
                     id: 'KPSAFU',
