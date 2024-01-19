@@ -442,7 +442,6 @@ export class MRServer {
      */
     #handleSocket(socket) {
         console.log("New user joining, waiting for auth.");
-        console.log(this.params.ratelimit);
         let messagesPerSecond = 0;
         let sentUsername = false;
 
@@ -576,7 +575,7 @@ export class MRServer {
             });
 
             socket.on("admin-action", async ({ args }) => {
-                let log = "Admin Action";
+                let log = "-------------------\nAdmin Action";
                 let { admins, banned } = this.db;
                 let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
 
