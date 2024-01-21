@@ -37,6 +37,7 @@ const server = new MRServer({
     enableAutoMod: (ARGUMENTS.options.some(o => o.name === "enable-automod")),
     ratelimit: parseInt(ARGUMENTS.options.find(o => o.name === "ratelimit")?.value || 2),
     userLimit: parseInt(ARGUMENTS.options.find(o => o.name === "user-limit")?.value || 5),
+    userKnowBlocks: (ARGUMENTS.options.some(o => o.name === "user-knowblocks")),
     server: HTTP_SERVER
 });
 

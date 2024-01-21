@@ -405,6 +405,7 @@ export class MRServer {
             enableAutoMod: false,
             ratelimit: 2,
             userLimit: 5,
+            userKnowBlocks: false,
 
             ...params
         };
@@ -541,7 +542,8 @@ export class MRServer {
                     messageRatelimit: this.params.ratelimit || 2,
                     userLimit: this.params.userLimit || 5,
                     automod: this.params.enableAutoMod || false,
-                    loginkeys: this.params.requireLoginKeys || false
+                    loginkeys: this.params.requireLoginKeys || false,
+                    userKnowBlocks: this.params.userKnowBlocks || false
                 });
 
                 // Add user to database
@@ -1005,34 +1007,38 @@ export class MRServer {
             });
 
             socket.on("block-user", (data) => {
-                let targetUsers = {};
-                this.USERS.forEach((value, key) => {
-                    if (value.data.id === data.user) {
-                        targetUsers[value.data.session_id] = value;
-                    }
-                });
-                if(Object.keys(targetUsers).length >= 1) {
-                    Object.values(targetUsers).forEach(user => {
-                        user.socket.emit("blocked", {
-                            user: msgroom_user.id
-                        });
+                if(this.params.userKnowBlocks) {
+                    let targetUsers = {};
+                    this.USERS.forEach((value, key) => {
+                        if (value.data.id === data.user) {
+                            targetUsers[value.data.session_id] = value;
+                        }
                     });
+                    if(Object.keys(targetUsers).length >= 1) {
+                        Object.values(targetUsers).forEach(user => {
+                            user.socket.emit("blocked", {
+                                user: msgroom_user.id
+                            });
+                        });
+                    }
                 }
             });
 
             socket.on("unblock-user", (data) => {
-                let targetUsers = {};
-                this.USERS.forEach((value, key) => {
-                    if (value.data.id === data.user) {
-                        targetUsers[value.data.session_id] = value;
-                    }
-                });
-                if(Object.keys(targetUsers).length >= 1) {
-                    Object.values(targetUsers).forEach(user => {
-                        user.socket.emit("unblocked", {
-                            user: msgroom_user.id
-                        });
+                if(this.params.userKnowBlocks) {
+                    let targetUsers = {};
+                    this.USERS.forEach((value, key) => {
+                        if (value.data.id === data.user) {
+                            targetUsers[value.data.session_id] = value;
+                        }
                     });
+                    if(Object.keys(targetUsers).length >= 1) {
+                        Object.values(targetUsers).forEach(user => {
+                            user.socket.emit("unblocked", {
+                                user: msgroom_user.id
+                            });
+                        });
+                    }
                 }
             });
 
