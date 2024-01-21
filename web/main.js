@@ -311,7 +311,8 @@ socket.on("connect", () => {
     socket.once("auth-error", async (content) => {
         createNotification({
             title: "Authentication error",
-            description: "Please wait some time and try again."
+            description: "Please wait some time and try again.",
+            timeout: null
         });
         createMessage({ content, classes: ["system", "error"] });
     });
@@ -484,6 +485,12 @@ socket.on("connect_error", (err) => {
         errored = true;
     }
 
+    createNotification({
+        title: "Disconnected",
+        description: "Please re-join.",
+        timeout: null
+    });
+
     createMessage({
         content: `You have been disconnected from the server. Reason can be found on console. <a onclick="location.reload()">Click here to reconnect</a>`,
         classes: ["system", "error"],
@@ -494,6 +501,12 @@ socket.on('disconnect', () => {
     if (!errored) {
         errored = true;
     }
+
+    createNotification({
+        title: "Disconnected",
+        description: "Please re-join.",
+        timeout: null
+    });
 
     createMessage({
         content: `You have been disconnected from the server. <a onclick="location.reload()">Click here to reconnect</a>`,
