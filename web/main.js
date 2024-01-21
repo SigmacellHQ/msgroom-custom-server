@@ -6,6 +6,7 @@ const nicknameBtn = document.querySelector(".nickname");
 const messageBox = document.querySelector(".message-box");
 const messageList = document.querySelector(".messages");
 const memberList = document.querySelector(".members>.list");
+const notifications = document.querySelector(".mrcs-notifications");
 // Commands
 const COMMANDS = [
     {
@@ -95,6 +96,10 @@ const COMMANDS = [
 
             localStorage.setItem("blocked", JSON.stringify([...JSON.parse(localStorage.getItem("blocked") ?? "[]"), args[0]]));
 
+            socket.emit("block-user", {
+                user: id
+            });
+
             createMessage({
                 content: `The user <strong>${members.find(m => m.id === id).user}</strong> is now blocked.`,
                 classes: ["system", "info"],
@@ -127,6 +132,10 @@ const COMMANDS = [
             }
 
             localStorage.setItem("blocked", JSON.stringify(JSON.parse(localStorage.getItem("blocked") ?? "[]").filter(user => user !== id)));
+
+            socket.emit("unblock-user", {
+                user: id
+            });
 
             createMessage({
                 content: `The user <strong>${members.find(m => m.id === id).user}</strong> is now unblocked.`,
@@ -300,6 +309,10 @@ socket.on("connect", () => {
     });
 
     socket.once("auth-error", async (content) => {
+        createNotification({
+            title: "Authentication error",
+            description: "Please wait some time and try again."
+        });
         createMessage({ content, classes: ["system", "error"] });
     });
 
@@ -338,6 +351,10 @@ socket.on("connect", () => {
                 case "tag-add": {
                     if (!data.tag) break;
 
+                    if(data.user === user.session_id) {
+                        user.flags.push(data.tag);
+                    }
+
                     members = members.map(member => {
                         if (member.session_id === data.user) {
                             member.flags.push(data.tag);
@@ -351,6 +368,10 @@ socket.on("connect", () => {
 
                 case "tag-remove": {
                     if (!data.tag) break;
+
+                    if(data.user === user.session_id) {
+                        user.flags = user.flags.filter(flag => flag !== data.tag);
+                    }
 
                     members = members.map(member => {
                         if (member.session_id === data.user) {
@@ -383,6 +404,42 @@ socket.on("connect", () => {
         });
         nicknameBtn.addEventListener("click", () => {
             changeUsername();
+        });
+
+        socket.on("blocked", (data) => {
+            let blocked = JSON.parse(localStorage.getItem("blocked") ?? "[]");
+            if(!blocked.includes(data.user)) {
+                let member = members.find(member => member.id === data.user);
+                if(member) {
+                    createNotification({
+                        title: "Someone blocked you",
+                        description: member.user + " has blocked you.. ID: " + data.user
+                    });
+                } else {
+                    createNotification({
+                        title: "Someone blocked you",
+                        description: data.user + " has blocked you."
+                    });
+                }
+            }
+        });
+
+        socket.on("unblocked", (data) => {
+            let blocked = JSON.parse(localStorage.getItem("blocked") ?? "[]");
+            if(!blocked.includes(data.user)) {
+                let member = members.find(member => member.id === data.user);
+                if(member) {
+                    createNotification({
+                        title: "Someone unblocked you",
+                        description: member.user + " has unblocked you. ID: " + data.user
+                    });
+                } else {
+                    createNotification({
+                        title: "Someone blocked you",
+                        description: data.user + " has unblocked you."
+                    });
+                }
+            }
         });
     });
 });
@@ -588,6 +645,60 @@ menuBtn.addEventListener("click", () => {
 
     document.body.appendChild(ctxMenu);
 });
+
+/*
+        <div class="mrcs-notification">
+            <div style="display: flex;">
+                <img src="https://cdn.discordapp.com/avatars/544207551219105792/a_f484d57d5275d2ae0661c0d226fc2352.gif">
+                <div>
+                    <h3>test</h3>
+                    <p>like this</p>
+                </div>
+            </div>
+        </div>
+*/
+function createNotification(givenparams = {}) {
+    let params = {
+        title: null,
+        description: null,
+        image: null,
+        sound: null,
+        ...givenparams
+    };
+    if(params.sound) new Audio(params.sound).play();
+
+    const el = document.createElement("div");
+    el.className = "mrcs-notification";
+
+    const inside = document.createElement("div");
+    inside.style.display = "flex";
+
+    const img = document.createElement("img");
+    if(params.image) { img.src = params.image; } else {
+        img.style.width = "0px";
+    }
+    inside.appendChild(img);
+
+    const details = document.createElement("div");
+
+    const title = document.createElement("h3");
+    title.innerText = params.title;
+    details.appendChild(title);
+
+    const desc = document.createElement("p");
+    desc.innerText = params.description;
+    details.appendChild(desc);
+
+    inside.appendChild(details);
+    
+    el.appendChild(inside);
+
+    notifications.appendChild(el);
+
+    el.addEventListener("click", () => {
+        el.remove();
+    });
+}
 
 // Mobile support
 let currentlySelected = "Chat";

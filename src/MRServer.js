@@ -1001,11 +1001,41 @@ export class MRServer {
                 }
             });
 
+            socket.on("block-user", (data) => {
+                let targetUsers = {};
+                this.USERS.forEach((value, key) => {
+                    if (value.data.id === data.user) {
+                        targetUsers[value.data.session_id] = value;
+                    }
+                });
+                if(Object.keys(targetUsers).length >= 1) {
+                    Object.values(targetUsers).forEach(user => {
+                        user.socket.emit("blocked", {
+                            user: msgroom_user.id
+                        });
+                    });
+                }
+            });
+
+            socket.on("unblock-user", (data) => {
+                let targetUsers = {};
+                this.USERS.forEach((value, key) => {
+                    if (value.data.id === data.user) {
+                        targetUsers[value.data.session_id] = value;
+                    }
+                });
+                if(Object.keys(targetUsers).length >= 1) {
+                    Object.values(targetUsers).forEach(user => {
+                        user.socket.emit("unblocked", {
+                            user: msgroom_user.id
+                        });
+                    });
+                }
+            });
+
             socket.on("disconnect", () => {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
-
-                if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
 
                 this.io.emit("user-leave", {
                     user: msgroom_user.user,
@@ -1017,7 +1047,7 @@ export class MRServer {
             });
 
             socket.emit("online", [...this.USERS.values()].map(u => u.data));
-        })
+        });
 
     }
 

@@ -48,19 +48,21 @@
         }
 
         .mrcs-notifications{
-            display: none; /* didnt have time to finish */
-            background-color: black;
+            font-family: "nouveaux";
             position: fixed;
             right: 0;
-            width: 170px;
-            height: 100%;
+            bottom: 0;
+            width: 330px;
+            margin-bottom: 35px;
         }
 
         .mrcs-notifications>.mrcs-notification{
             color: white;
             box-shadow: 0px 0px 6px 2px white;
-            width: 150px;
+            width: 320px;
             margin-left: 10px;
+            margin-top: 15px;
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         .mrcs-notifications>.mrcs-notification>div>img{
@@ -68,16 +70,27 @@
             width: 50px;
             height: 50px;
             border-radius: 10px;
+            margin-top: 3px;
+            margin-left: 3px;
+            margin-bottom: 3px;
         }
 
         .mrcs-notifications>.mrcs-notification>div>div{
             margin-left: 5px;
         }
 
+        .mrcs-notifications>.mrcs-notification>div>div>h3{
+            font-size: 14px;
+        }
+
+        .mrcs-notifications>.mrcs-notification>div>div>p{
+            font-size: 12px;
+        }
+
         .mrcs-notifications>.mrcs-notification>div>div>p,
         .mrcs-notifications>.mrcs-notification>div>div>h3{
             margin: 0;
-            margin-top: 3px;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -106,17 +119,7 @@
         <button class="active">Chat</button><button>Members</button>
     </div>
 
-    <div class="mrcs-notifications">
-        <div class="mrcs-notification">
-            <div style="display: flex;">
-                <img src="https://cdn.discordapp.com/avatars/544207551219105792/a_f484d57d5275d2ae0661c0d226fc2352.gif">
-                <div>
-                    <h3>test</h3>
-                    <p>like this</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="mrcs-notifications"></div>
 
     <script>
         // app.call(window);

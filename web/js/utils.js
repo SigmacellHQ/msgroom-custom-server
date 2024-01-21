@@ -43,6 +43,9 @@ export function contextMenu(uid) {
         if(!blocked.includes(uid)) {
             blocked.push(uid);
             localStorage.setItem("blocked", JSON.stringify(blocked));
+            socket.emit("block-user", {
+                user: uid
+            });
         } else {
             let newBlocked = [];
             blocked.forEach(user => {
@@ -52,6 +55,9 @@ export function contextMenu(uid) {
             });
             blocked = newBlocked;
             localStorage.setItem("blocked", JSON.stringify(blocked));
+            socket.emit("unblock-user", {
+                user: uid
+            });
         }
     });
     ctx.querySelectorAll(".item")[1].addEventListener("click", () => {
