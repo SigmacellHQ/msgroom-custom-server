@@ -143,6 +143,26 @@ const COMMANDS = [
                 allowHtml: true
             });
         }
+    },
+    {
+        name: "serverinfo",
+        description: "Gives you the MRCS server info",
+        exec: ({ args }) => {
+            createMessage({
+                content: [
+                    "**MRCS server info**",
+                    "",
+                    "Version: **" + (mrcsServerInfo.version.toString() || "unknown") + "**",
+                    "Message Rate Limit: **" + (mrcsServerInfo.messageRatelimit.toString() || "unknown") + "**",
+                    "User Limit: **" + (mrcsServerInfo.userLimit.toString() || "unknown") + "**",
+                    "AutoMod: **" + (mrcsServerInfo.automod.toString() || "unknown") + "**",
+                    "Login Keys: **" + (mrcsServerInfo.loginkeys.toString() || "unknown") + "**",
+                    "User know blocks: **" + (mrcsServerInfo.userKnowBlocks.toString() || "unknown") + "**",
+                ].join("\n"),
+                classes: ["system", "info"],
+                allowHtml: true
+            });
+        }
     }
 ]
 // Config
@@ -604,13 +624,7 @@ const menuItems = [
         label: "Server info",
         type: "item",
         action: () => {
-            alert([
-                "MRCS server version: " + (mrcsServerInfo.version.toString() || "unknown"),
-                "Message Rate Limit: " + (mrcsServerInfo.messageRatelimit.toString() || "unknown"),
-                "User Limit: " + (mrcsServerInfo.userLimit.toString() || "unknown"),
-                "AutoMod: " + (mrcsServerInfo.automod.toString() || "unknown"),
-                "Login Keys: " + (mrcsServerInfo.loginkeys.toString() || "unknown"),
-            ].join("\n"));
+            COMMANDS.find(c => c.name === "serverinfo").exec({ socket })
         }
     }
 ]
