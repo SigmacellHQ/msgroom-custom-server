@@ -361,9 +361,13 @@ export class MRServer {
 
         // Session ID
         let uid = 0;
+        let users = [];
         this.USERS.forEach(u => {
-            if (id === u.data.id) uid += 1;
+            if (id === u.data.id) users.push(u.data);
         });
+        while (users.some(user => parseInt(user.session_id.split("-")[1]) === uid)) {
+            uid++;
+        }
 
         // Flags
         const flags = [];
@@ -533,7 +537,7 @@ export class MRServer {
             } else if (this.isIpBlacklisted(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress)) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> <code>" + msgroom_user.id + "</code>");
                 socket.disconnect();
-
+ 
                 return;
             } else {
                 // Tell the client the MRCS server info
@@ -1045,7 +1049,8 @@ export class MRServer {
             socket.on("disconnect", () => {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
-
+                
+                console.log(this.USERS);
                 this.io.emit("user-leave", {
                     user: msgroom_user.user,
                     id: msgroom_user.id,
