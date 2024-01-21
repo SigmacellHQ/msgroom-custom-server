@@ -663,9 +663,18 @@ function createNotification(givenparams = {}) {
         description: null,
         image: null,
         sound: null,
+        timeout: 5000,
         ...givenparams
     };
     if(params.sound) new Audio(params.sound).play();
+
+    if(params.timeout) {
+        let timeout = setTimeout(() => {
+            try{
+                el.remove();
+            } catch {}
+        }, params.timeout);
+    }
 
     const el = document.createElement("div");
     el.className = "mrcs-notification";
