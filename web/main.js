@@ -413,7 +413,7 @@ socket.on("connect", () => {
                 if(member) {
                     createNotification({
                         title: "Someone blocked you",
-                        description: member.user + " has blocked you.. ID: " + data.user
+                        description: member.user + " has blocked you. ID: " + data.user
                     });
                 } else {
                     createNotification({
