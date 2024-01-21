@@ -538,7 +538,10 @@ export class MRServer {
                 // Tell the client the MRCS server info
                 socket.emit("mrcs-serverinfo", {
                     version: "1.3.1",
-                    automod: this.params.enableAutoMod || false
+                    messageRatelimit: this.params.ratelimit || 2,
+                    userLimit: this.params.userLimit || 5,
+                    automod: this.params.enableAutoMod || false,
+                    loginkeys: this.params.requireLoginKeys || false
                 });
 
                 // Add user to database
