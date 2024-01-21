@@ -33,11 +33,15 @@ On the terminal, you should see the Arguments, and the url to visit your custom 
 
 ## CLI Options
 - `--client`: Starts the client ui server
-- `--random-ids`: Randomizes user ids
-- `--require-loginkeys`: Requires login keys to connect
 - `--db-file <PATH>`: Sets the path to the JSON db file
 - `--admin-secret <SECRET>`: Sets the admin secret
+- `--random-ids`: Randomizes user ids
 - `--api-url <URL>`: Sets the api endpoint
+- `--require-loginkeys`: Requires login keys to connect
+- `--enable-automod`: Enables the AutoMod bot
+- `--ratelimit <limit>`: Sets the message rate limit
+- `--user-limit <limit>`: Sets the user limit (alt accounts)
+- `--user-knowblocks`: Makes users able to see when they're blocked
 
 ## How to add bots
 This is up to the bot api owner to add, but if its like msgroom-orm, here's how to do it \
