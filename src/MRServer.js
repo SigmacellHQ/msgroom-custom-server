@@ -550,7 +550,7 @@ export class MRServer {
                     content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.\n[GitHub Repository 🡕](https://github.com/nolanwhy/msgroom-custom-server)',
                     user: 'System',
                     color: 'rgb(0, 0, 128)',
-                    id: 'KPSAFU',
+                    id: '',
                     session_id: '',
                     date: new Date().toUTCString()
                 });
