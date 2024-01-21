@@ -186,7 +186,6 @@ const COMMANDS = [
                         content: `Redirecting...`
                     });
                     window.location.hash = "#" + encodeURIComponent(args[1]);
-                    // ??
                 } else {
                     createMessage({
                         classes: ["info", "system"],

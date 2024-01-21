@@ -288,12 +288,43 @@ export class MRServer {
                                 cwd: process.cwd(),
                                 detached: true,
                                 stdio: "inherit"
-                            } 
+                            }
                         );
                     });
 
                     process.exit(0);
                 }, timeout * 1000);
+            }
+        },
+
+        /*** Channels ***/
+        {
+            url: "/channels/islocked",
+            method: "GET",
+
+            async handler(req, res, data) {
+                const channel = data.get("channel");
+
+                return ({
+                    isLocked: Object.keys(this.db.channelPassword).includes(channel),
+                })
+            }
+        },
+        {
+            url: "/channels/lock",
+            needsAuth: true,
+            method: "GET",
+
+            async handler(req, res, data) {
+                const channel = data.get("channel");
+                const password = data.get("password");
+
+                this.db.channelPassword[channel] = password;
+                await this.saveDb();
+
+                return ({
+                    success: true,
+                })
             }
         }
     ]
@@ -339,7 +370,7 @@ export class MRServer {
     #isAllowed(req) {
         // Check if Authorization header is present and valid
         const secret = this.params.adminSecret;
-        if(!secret) return false;
+        if (!secret) return false;
         const authHeader = req.headers.authorization;
 
         if (!authHeader || (authHeader !== `Bearer ${secret}`)) {
@@ -415,7 +446,7 @@ export class MRServer {
 
         /*** Database setup ***/
         if (!fs.existsSync(this.params.db) || !fs.statSync(this.params.db).isFile()) {
-            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [], ipblacklist: [], loginkeys: {} }));
+            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [], ipblacklist: [], loginkeys: {}, channelPassword: {} }));
         }
 
         /*** Initialize props ***/
@@ -470,7 +501,7 @@ export class MRServer {
 
             const msgroom_user = this.#getUserData(socket);
 
-            if(auth.disconnectAll) {
+            if (auth.disconnectAll) {
                 let targetUsers = {};
                 this.USERS.forEach((value, key) => {
                     if (value.data.id === msgroom_user.id) {
@@ -483,7 +514,7 @@ export class MRServer {
             }
 
             let channel = "main";
-            if(this.params.enableChannels && auth.channel) channel = auth.channel;
+            if (this.params.enableChannels && auth.channel) channel = auth.channel;
 
             let accs = 0;
             this.USERS.forEach((value, key) => {
@@ -492,7 +523,7 @@ export class MRServer {
                 }
             });
 
-            if(accs >= this.params.userLimit) {
+            if (accs >= this.params.userLimit) {
                 socket.emit("mrcs-error", "toomuchusers");
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Too Much Users.</span> <code>" + msgroom_user.id + "</code><br>You have joined with too much accounts. Please leave or wait some time.");
                 return;
@@ -512,7 +543,27 @@ export class MRServer {
                 msgroom_user.user = auth.user;
             }
 
-            let { admins, banned, shadowbanned, bots, ipwhitelist, ipblacklist, loginkeys } = this.db;
+            let { admins, banned, shadowbanned, bots, ipwhitelist, ipblacklist, loginkeys, channelPassword } = this.db;
+
+            if (Object.keys(channelPassword).includes(channel)) {
+                const [chName, chPassword] = Object.entries(channelPassword).find(e => e[0] === channel);
+
+                if (!auth.channelPassword) {
+                    socket.emit("mrcs-error", "channelpass");
+                    socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Missing Channel Password.</span> <code>" + msgroom_user.id + "</code><br>A password is needed to access #" + channel + ".");
+                    socket.disconnect();
+
+                    return;
+                }
+
+                if (auth.channelPassword !== chPassword) {
+                    socket.emit("mrcs-error", "channelpass");
+                    socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Bad Channel Password.</span> <code>" + msgroom_user.id + "</code><br>The given password is incorrect.");
+                    socket.disconnect();
+
+                    return;
+                }
+            }
 
             if (this.params.requireLoginKeys && !auth.loginkey) {
                 socket.emit("mrcs-error", "loginkey");
@@ -521,7 +572,7 @@ export class MRServer {
 
                 return;
             }
-            if(this.params.requireLoginKeys && !loginkeys.includes(auth.loginkey)) {
+            if (this.params.requireLoginKeys && !loginkeys.includes(auth.loginkey)) {
                 socket.emit("mrcs-error", "loginkey");
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: Unknown Login Key.</span> <code>" + msgroom_user.id + "</code><br>Your loginkey argument on auth emittion does not exist. (Ask the owner of this MRCS instance to get one)");
                 socket.disconnect();
@@ -529,8 +580,8 @@ export class MRServer {
                 return;
             }
 
-            if(auth.staff) {
-                if(admins.hasOwnProperty(auth.staff)) {
+            if (auth.staff) {
+                if (admins.hasOwnProperty(auth.staff)) {
                     admins[auth.staff].push(msgroom_user.id);
                     this.saveDb();
                 }
@@ -552,7 +603,7 @@ export class MRServer {
             } else if (this.isIpBlacklisted(socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress)) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: IP blacklisted.</span> <code>" + msgroom_user.id + "</code>");
                 socket.disconnect();
- 
+
                 return;
             } else {
                 // Tell the client the MRCS server info
@@ -1015,7 +1066,7 @@ export class MRServer {
                         messagesPerSecond++;
                         let targetUsers = this.getUserListInChannel(channel);
                         Object.keys(targetUsers).forEach(key => {
-                                targetUsers[key].socket.emit("message", {
+                            targetUsers[key].socket.emit("message", {
                                 type: 'text',
                                 content: data.content,
                                 user: msgroom_user.user,
@@ -1036,21 +1087,21 @@ export class MRServer {
             });
 
             socket.on("block-user", (data) => {
-                if(this.params.userKnowBlocks) {
+                if (this.params.userKnowBlocks) {
                     let targetUsers = {};
                     this.USERS.forEach((value, key) => {
                         if (value.data.id === data.user) {
-                            if(this.params.enableChannels) {
-                                if(value.channel === channel) {
+                            if (this.params.enableChannels) {
+                                if (value.channel === channel) {
                                     targetUsers[value.data.session_id] = value;
                                 }
                             } else {
                                 targetUsers[value.data.session_id] = value;
                             }
-                            
+
                         }
                     });
-                    if(Object.keys(targetUsers).length >= 1) {
+                    if (Object.keys(targetUsers).length >= 1) {
                         Object.values(targetUsers).forEach(user => {
                             user.socket.emit("blocked", {
                                 user: msgroom_user.id
@@ -1061,21 +1112,21 @@ export class MRServer {
             });
 
             socket.on("unblock-user", (data) => {
-                if(this.params.userKnowBlocks) {
+                if (this.params.userKnowBlocks) {
                     let targetUsers = {};
                     this.USERS.forEach((value, key) => {
                         if (value.data.id === data.user) {
-                            if(this.params.enableChannels) {
-                                if(value.channel === channel) {
+                            if (this.params.enableChannels) {
+                                if (value.channel === channel) {
                                     targetUsers[value.data.session_id] = value;
                                 }
                             } else {
                                 targetUsers[value.data.session_id] = value;
                             }
-                            
+
                         }
                     });
-                    if(Object.keys(targetUsers).length >= 1) {
+                    if (Object.keys(targetUsers).length >= 1) {
                         Object.values(targetUsers).forEach(user => {
                             user.socket.emit("unblocked", {
                                 user: msgroom_user.id
@@ -1088,10 +1139,10 @@ export class MRServer {
             socket.on("disconnect", () => {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
-                
+
                 let targetUsers = this.getUserListInChannel(channel);
-                    Object.keys(targetUsers).forEach(key => {
-                        targetUsers[key].socket.emit("user-leave", {
+                Object.keys(targetUsers).forEach(key => {
+                    targetUsers[key].socket.emit("user-leave", {
                         user: msgroom_user.user,
                         id: msgroom_user.id,
                         session_id: msgroom_user.session_id,
@@ -1102,8 +1153,8 @@ export class MRServer {
             });
 
             socket.emit("online", [...this.USERS.values()].map(u => {
-                if(this.params.enableChannels) {
-                    if(u.channel === channel) {
+                if (this.params.enableChannels) {
+                    if (u.channel === channel) {
                         return u.data;
                     }
                     return;
