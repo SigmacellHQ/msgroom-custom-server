@@ -174,7 +174,7 @@ const COMMANDS = [
     },
     {
         name: "c",
-        description: "Changes the hannel",
+        description: "Changes the channel",
         exec: ({ args }) => {
             if(mrcsServerInfo.channels) {
                 if(args[1]) {
