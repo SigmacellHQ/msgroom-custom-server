@@ -50,47 +50,41 @@
         .mrcs-notifications{
             font-family: "nouveaux";
             position: fixed;
-            right: 0;
-            bottom: 0;
-            width: 330px;
-            margin-bottom: 35px;
+            right: 8px;
+            bottom: 8px;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 8px;
         }
 
-        .mrcs-notifications>.mrcs-notification{
-            color: white;
-            box-shadow: 0px 0px 6px 2px white;
+        .mrcs-notifications>.mrcs-notification {
             width: 320px;
-            margin-left: 10px;
-            margin-top: 15px;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
 
-        .mrcs-notifications>.mrcs-notification>div>img{
-            display: block;
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            margin-top: 3px;
-            margin-left: 3px;
-            margin-bottom: 3px;
-        }
+            background-color: rgb(192, 192, 192);
+            color: #000;
 
-        .mrcs-notifications>.mrcs-notification>div>div{
-            margin-left: 5px;
-        }
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid gray;
+            border-bottom: 1px solid gray;
+            box-shadow: inset 1px 1px #dfdfdf, 1px 0 #000, 0 1px #000, 1px 1px #000;
 
-        .mrcs-notifications>.mrcs-notification>div>div>h3{
-            font-size: 14px;
-        }
+            padding: 8px;
+            gap: 8px;
 
-        .mrcs-notifications>.mrcs-notification>div>div>p{
-            font-size: 12px;
-        }
+            font-size: 8px;
 
-        .mrcs-notifications>.mrcs-notification>div>div>p,
-        .mrcs-notifications>.mrcs-notification>div>div>h3{
-            margin: 0;
-            margin-top: 5px;
+            display: flex;
+            flex-direction: row;
+
+            > img {
+                display: block !important;
+
+                width: 32px;
+                aspect-ratio: 1;
+            }
         }
     </style>
 </head>
@@ -112,7 +106,7 @@
     </div>
 
     <div id="menu">
-        <a href="#" class="menu-btn">Menu</a>
+        <a class="menu-btn">Menu</a>
     </div>
 
     <div class="mob-tab-btns">

@@ -174,8 +174,6 @@ export class MRServer {
 
                     user.socket.disconnect();
 
-                    console.log(this.USERS);
-
                     success = true;
                 }
 
@@ -290,7 +288,7 @@ export class MRServer {
                                 cwd: process.cwd(),
                                 detached: true,
                                 stdio: "inherit"
-                            }
+                            } 
                         );
                     });
 
@@ -410,6 +408,7 @@ export class MRServer {
             ratelimit: 2,
             userLimit: 5,
             userKnowBlocks: false,
+            enableChannels: false,
 
             ...params
         };
@@ -441,6 +440,19 @@ export class MRServer {
         return false;
     }
 
+    getUserListInChannel(channel) {
+        let targetUsers = {};
+        this.USERS.forEach((value, key) => {
+            if (
+                !this.params.enableChannels ||
+                value.channel === channel
+            ) {
+                targetUsers[value.data.session_id] = value;
+            }
+        });
+        return targetUsers;
+    }
+
     /**
      * Handle connections from clients
      * @param {import("socket.io").Socket} socket The connecting socket
@@ -469,6 +481,9 @@ export class MRServer {
                     targetUsers[key].socket.disconnect();
                 });
             }
+
+            let channel = "main";
+            if(this.params.enableChannels && auth.channel) channel = auth.channel;
 
             let accs = 0;
             this.USERS.forEach((value, key) => {
@@ -547,11 +562,12 @@ export class MRServer {
                     userLimit: this.params.userLimit || 5,
                     automod: this.params.enableAutoMod || false,
                     loginkeys: this.params.requireLoginKeys || false,
-                    userKnowBlocks: this.params.userKnowBlocks || false
+                    userKnowBlocks: this.params.userKnowBlocks || false,
+                    channels: this.params.enableChannels || false,
                 });
 
                 // Add user to database
-                this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "" });
+                this.USERS.set(msgroom_user.session_id, { socket: socket, data: msgroom_user, ip: socket.request.headers['cf-connecting-ip'] || socket.conn.remoteAddress, loginkey: auth.loginkey || "", channel });
 
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
                 socket.emit("message", {
@@ -566,12 +582,15 @@ export class MRServer {
 
                 if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
 
-                this.io.emit("user-join", {
-                    user: msgroom_user.user,
-                    color: msgroom_user.color,
-                    id: msgroom_user.id,
-                    session_id: msgroom_user.session_id,
-                    flags: msgroom_user.flags,
+                let targetUsers = this.getUserListInChannel(channel);
+                Object.keys(targetUsers).forEach(key => {
+                    targetUsers[key].socket.emit("user-join", {
+                        user: msgroom_user.user,
+                        color: msgroom_user.color,
+                        id: msgroom_user.id,
+                        session_id: msgroom_user.session_id,
+                        flags: msgroom_user.flags
+                    });
                 });
 
                 console.log("-> User " + msgroom_user.user, "(" + msgroom_user.session_id + ") joined the chat :D");
@@ -593,11 +612,14 @@ export class MRServer {
                         username !== "System"
                     ) {
                         messagesPerSecond++;
-                        this.io.emit("nick-changed", {
-                            oldUser: msgroom_user.user,
-                            newUser: username,
-                            id: msgroom_user.id,
-                            session_id: msgroom_user.session_id,
+                        let targetUsers = this.getUserListInChannel(channel);
+                        Object.keys(targetUsers).forEach(key => {
+                            targetUsers[key].socket.emit("nick-changed", {
+                                oldUser: msgroom_user.user,
+                                newUser: username,
+                                id: msgroom_user.id,
+                                session_id: msgroom_user.session_id,
+                            });
                         });
                         console.log("User", msgroom_user.user, "(" + msgroom_user.session_id + ") changed their username to", username);
                         msgroom_user.user = username;
@@ -991,14 +1013,17 @@ export class MRServer {
                 if (messagesPerSecond < this.params.ratelimit) {
                     if (data.content.length <= 2048) {
                         messagesPerSecond++;
-                        this.io.emit("message", {
-                            type: 'text',
-                            content: data.content,
-                            user: msgroom_user.user,
-                            color: msgroom_user.color,
-                            id: msgroom_user.id,
-                            session_id: msgroom_user.session_id,
-                            date: new Date().toUTCString()
+                        let targetUsers = this.getUserListInChannel(channel);
+                        Object.keys(targetUsers).forEach(key => {
+                                targetUsers[key].socket.emit("message", {
+                                type: 'text',
+                                content: data.content,
+                                user: msgroom_user.user,
+                                color: msgroom_user.color,
+                                id: msgroom_user.id,
+                                session_id: msgroom_user.session_id,
+                                date: new Date().toUTCString()
+                            });
                         });
                         console.log(msgroom_user.user, "(" + msgroom_user.session_id + "):", data.content);
                     }
@@ -1015,7 +1040,14 @@ export class MRServer {
                     let targetUsers = {};
                     this.USERS.forEach((value, key) => {
                         if (value.data.id === data.user) {
-                            targetUsers[value.data.session_id] = value;
+                            if(this.params.enableChannels) {
+                                if(value.channel === channel) {
+                                    targetUsers[value.data.session_id] = value;
+                                }
+                            } else {
+                                targetUsers[value.data.session_id] = value;
+                            }
+                            
                         }
                     });
                     if(Object.keys(targetUsers).length >= 1) {
@@ -1033,7 +1065,14 @@ export class MRServer {
                     let targetUsers = {};
                     this.USERS.forEach((value, key) => {
                         if (value.data.id === data.user) {
-                            targetUsers[value.data.session_id] = value;
+                            if(this.params.enableChannels) {
+                                if(value.channel === channel) {
+                                    targetUsers[value.data.session_id] = value;
+                                }
+                            } else {
+                                targetUsers[value.data.session_id] = value;
+                            }
+                            
                         }
                     });
                     if(Object.keys(targetUsers).length >= 1) {
@@ -1050,17 +1089,28 @@ export class MRServer {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
                 
-                console.log(this.USERS);
-                this.io.emit("user-leave", {
-                    user: msgroom_user.user,
-                    id: msgroom_user.id,
-                    session_id: msgroom_user.session_id,
+                let targetUsers = this.getUserListInChannel(channel);
+                    Object.keys(targetUsers).forEach(key => {
+                        targetUsers[key].socket.emit("user-leave", {
+                        user: msgroom_user.user,
+                        id: msgroom_user.id,
+                        session_id: msgroom_user.session_id,
+                    });
                 });
 
                 console.log("<- User", msgroom_user.user, "(" + msgroom_user.session_id + ") left the chat :(");
             });
 
-            socket.emit("online", [...this.USERS.values()].map(u => u.data));
+            socket.emit("online", [...this.USERS.values()].map(u => {
+                if(this.params.enableChannels) {
+                    if(u.channel === channel) {
+                        return u.data;
+                    }
+                    return;
+                } else {
+                    return u.data;
+                }
+            }).filter(Boolean));
         });
 
     }

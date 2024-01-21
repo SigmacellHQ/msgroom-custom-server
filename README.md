@@ -42,6 +42,7 @@ On the terminal, you should see the Arguments, and the url to visit your custom 
 - `--ratelimit <limit>`: Sets the message rate limit
 - `--user-limit <limit>`: Sets the user limit (alt accounts)
 - `--user-knowblocks`: Makes users able to see when they're blocked
+- `--enable-channels`: Enables channels
 
 ## How to add bots
 This is up to the bot api owner to add, but if its like msgroom-orm, here's how to do it \

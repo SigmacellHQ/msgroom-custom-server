@@ -1,5 +1,12 @@
 import { sleep, fixXSS, contextMenu, urlparams } from "./js/utils.js";
 
+// Hash checks
+if (location.hash === "") {
+    location.hash = "main";
+}
+
+const channel = location.hash.slice(1) || "main";
+
 // Elements
 const sendBtn = document.querySelector(".send");
 const nicknameBtn = document.querySelector(".nickname");
@@ -158,13 +165,43 @@ const COMMANDS = [
                     "AutoMod: **" + (mrcsServerInfo.automod.toString() || "unknown") + "**",
                     "Login Keys: **" + (mrcsServerInfo.loginkeys.toString() || "unknown") + "**",
                     "User know blocks: **" + (mrcsServerInfo.userKnowBlocks.toString() || "unknown") + "**",
+                    "Channels: **" + (mrcsServerInfo.channels.toString() || "unknown") + "**",
                 ].join("\n"),
                 classes: ["system", "info"],
                 allowHtml: true
             });
         }
+    },
+    {
+        name: "c",
+        description: "Changes the hannel",
+        exec: ({ args }) => {
+            if(mrcsServerInfo.channels) {
+                if(args[1]) {
+                    createNotification({
+                        title: "Changing channels",
+                        description: "Redirecting to \"#" + args[1] + "\""
+                    });
+                    createMessage({
+                        content: `Redirecting...`
+                    });
+                    window.location.hash = "#" + encodeURIComponent(args[1]);
+                    // ??
+                } else {
+                    createMessage({
+                        classes: ["info", "system"],
+                        content: `You are on the channel **${ window.location.hash || "#main" }**.`
+                    });
+                }
+            } else {
+                createNotification({
+                    title: "Failed to change channel",
+                    description: "Could not redirect to new channel: server disabled channels"
+                });
+            }
+        }
     }
-]
+];
 // Config
 const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
 let members = [];
@@ -309,8 +346,13 @@ socket.on("connect", () => {
         reloadMemberList();
     })
     // Authentication
-    let loginkey = localStorage.getItem("loginkey") ?? null;
-    socket.emit("auth", { user: username, loginkey: loginkey, disconnectAll: urlparams.has("disconnectAll") });
+    let loginkey = localStorage.getItem("loginkey") || null;
+    socket.emit("auth", {
+        user: username,
+        loginkey,
+        disconnectAll: urlparams.has("disconnectAll"),
+        channel
+    });
 
     // Set server info (using on instead of once because maybe an admin command to change)
     socket.on("mrcs-serverinfo", (info) => {
@@ -601,6 +643,14 @@ const menuItems = [
         }
     },
     {
+        label: "Change Channel",
+        type: "item",
+        action: () => {
+            let channel = prompt("What channel do you want to go to?", "main");
+            COMMANDS.find(c => c.name === "c").exec({ args: [ "c", channel ] });
+        }
+    },
+    {
         type: "separator",
     },
     {
@@ -627,7 +677,7 @@ const menuItems = [
             COMMANDS.find(c => c.name === "serverinfo").exec({ socket })
         }
     }
-]
+];
 
 const menuBtn = document.querySelector(".menu-btn");
 let ctxMenu = null;
@@ -676,26 +726,16 @@ menuBtn.addEventListener("click", () => {
     document.body.appendChild(ctxMenu);
 });
 
-/*
-        <div class="mrcs-notification">
-            <div style="display: flex;">
-                <img src="https://cdn.discordapp.com/avatars/544207551219105792/a_f484d57d5275d2ae0661c0d226fc2352.gif">
-                <div>
-                    <h3>test</h3>
-                    <p>like this</p>
-                </div>
-            </div>
-        </div>
-*/
 function createNotification(givenparams = {}) {
     let params = {
         title: null,
         description: null,
         image: null,
         sound: null,
-        timeout: 5000,
+        timeout: 10000,
         ...givenparams
     };
+
     if(params.sound) new Audio(params.sound).play();
 
     if(params.timeout) {
@@ -709,18 +749,15 @@ function createNotification(givenparams = {}) {
     const el = document.createElement("div");
     el.className = "mrcs-notification";
 
-    const inside = document.createElement("div");
-    inside.style.display = "flex";
-
-    const img = document.createElement("img");
-    if(params.image) { img.src = params.image; } else {
-        img.style.width = "0px";
+    if (params.image) {
+        const img = document.createElement("img");
+        img.src = params.image;
+        el.appendChild(img);
     }
-    inside.appendChild(img);
 
     const details = document.createElement("div");
 
-    const title = document.createElement("h3");
+    const title = document.createElement("strong");
     title.innerText = params.title;
     details.appendChild(title);
 
@@ -728,9 +765,7 @@ function createNotification(givenparams = {}) {
     desc.innerText = params.description;
     details.appendChild(desc);
 
-    inside.appendChild(details);
-    
-    el.appendChild(inside);
+    el.appendChild(details);
 
     notifications.appendChild(el);
 
@@ -738,6 +773,8 @@ function createNotification(givenparams = {}) {
         el.remove();
     });
 }
+
+window.createNotification = createNotification
 
 // Mobile support
 let currentlySelected = "Chat";
@@ -765,4 +802,9 @@ mobTabBtns[1].addEventListener("click", () => {
 
 window.addEventListener("beforeunload", () => {
     socket.disconnect();
+});
+
+// Reload on each hash change
+window.addEventListener("hashchange", () => {
+    location.reload();
 });
