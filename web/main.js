@@ -605,8 +605,11 @@ const menuItems = [
         type: "item",
         action: () => {
             alert([
-                "MRCS version " + (mrcsServerInfo.version || "unknown"),
-                "AutoMod enabled: " + (mrcsServerInfo.automod.toString() || "unknown"),
+                "MRCS server version: " + (mrcsServerInfo.version.toString() || "unknown"),
+                "Message Rate Limit: " + (mrcsServerInfo.messageRatelimit.toString() || "unknown"),
+                "User Limit: " + (mrcsServerInfo.userLimit.toString() || "unknown"),
+                "AutoMod: " + (mrcsServerInfo.automod.toString() || "unknown"),
+                "Login Keys: " + (mrcsServerInfo.loginkeys.toString() || "unknown"),
             ].join("\n"));
         }
     }
