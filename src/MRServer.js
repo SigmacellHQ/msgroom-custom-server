@@ -1136,6 +1136,30 @@ export class MRServer {
                 }
             });
 
+            socket.on("switch-channel", (data) => {
+                if(!this.params.enableChannels) return;
+                let targetUsers = this.getUserListInChannel(channel);
+                Object.keys(targetUsers).forEach(key => {
+                    targetUsers[key].socket.emit("user-leave", {
+                        user: msgroom_user.user,
+                        id: msgroom_user.id,
+                        session_id: msgroom_user.session_id,
+                    });
+                });
+                channel = data.channel;
+                this.USERS.get(msgroom_user.session_id).channel = data.channel;
+                targetUsers = this.getUserListInChannel(channel);
+                Object.keys(targetUsers).forEach(key => {
+                    targetUsers[key].socket.emit("user-join", {
+                        user: msgroom_user.user,
+                        color: msgroom_user.color,
+                        id: msgroom_user.id,
+                        session_id: msgroom_user.session_id,
+                        flags: msgroom_user.flags
+                    });
+                });
+            });
+
             socket.on("disconnect", () => {
                 this.USERS.delete(msgroom_user.session_id);
                 clearInterval(resetMessagesPerSecond);
