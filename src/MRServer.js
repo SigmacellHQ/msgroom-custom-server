@@ -608,7 +608,7 @@ export class MRServer {
             } else {
                 // Tell the client the MRCS server info
                 socket.emit("mrcs-serverinfo", {
-                    version: "1.3.1",
+                    version: "1.4.0",
                     messageRatelimit: this.params.ratelimit || 2,
                     userLimit: this.params.userLimit || 5,
                     automod: this.params.enableAutoMod || false,
