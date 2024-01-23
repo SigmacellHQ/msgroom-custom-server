@@ -54,7 +54,7 @@ if (ARGUMENTS.options.some(o => o.name === "client")) {
         // If the path links to a directory, redirect to the path with a trailing '/'
         if ((fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) && !req.url.endsWith('/')) {
             console.debug(`Redirecting ${req.url} to ${req.url}/`);
-            
+
             res.writeHead(301, { Location: (req.url + '/') });
             res.end();
             return;

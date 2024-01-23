@@ -328,9 +328,10 @@ const socket = io(API_URL, {
     reconnection: false
 });
 window.socket = socket;
-socket.on("connect", () => {
+socket.on("connect", async () => {
     // Add the blocked array if its not already done
     if (!localStorage.getItem("blocked")) localStorage.setItem("blocked", "[]");
+
     // Nickname
     let username = localStorage.getItem("nickname") ?? prompt("Enter username");
     if (!username || username.length < 1 || username.length > 18) {
@@ -338,20 +339,32 @@ socket.on("connect", () => {
     } else {
         localStorage.setItem("nickname", username);
     }
+
     document.querySelector(".nickname").innerText = username;
     console.log("Username is", username);
     socket.on("online", (memberList) => {
         members = memberList;
         reloadMemberList();
     })
+
     // Authentication
-    let loginkey = localStorage.getItem("loginkey") || null;
-    socket.emit("auth", {
+    const authParams = {
         user: username,
-        loginkey,
+        loginkey: localStorage.getItem("loginkey") || null,
         disconnectAll: urlparams.has("disconnectAll"),
-        channel
-    });
+        channel,
+    };
+
+    // Check if channel is locked
+    const { isLocked } = await fetch(`/api/channels/islocked?channel=${channel}`).then(r => r.json());
+    if (isLocked) {
+        const password = prompt("This channel is locked. Please enter the password.");
+        if (password) {
+            authParams.channelPassword = password;
+        }
+    }
+
+    socket.emit("auth", authParams);
 
     // Set server info (using on instead of once because maybe an admin command to change)
     socket.on("mrcs-serverinfo", (info) => {
