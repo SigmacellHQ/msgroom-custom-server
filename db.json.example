@@ -1,1 +1,11 @@
-{"admins":{},"banned":[],"shadowbanned":[],"bots":[],"ipwhitelist":[],"ipblacklist":[],"loginkeys":[],"channelPassword":{}}
+{
+    "banned": [],
+    "shadowbanned": [],
+    "ipwhitelist": [],
+    "ipblacklist": [],
+    "loginkeys": [],
+
+    "keys": {},
+
+    "channelPassword": {}
+}

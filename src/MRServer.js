@@ -22,13 +22,15 @@ export class MRServer {
                 });
             }
         },
+
+        /*** Keys ***/
         {
             url: "/keys/list",
             needsAuth: true,
             method: "GET",
 
             async handler(req, res) {
-                const keys = Object.keys(this.db.admins);
+                const keys = Object.keys(this.db.keys);
 
                 return ({
                     keys
@@ -41,14 +43,19 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res, data) {
-                const keys = this.db.admins;
+                const { keys } = this.db;
                 let success = false;
 
-                const key = data.get("key")
+                const key = data.get("key");
+                const flags = data.get("flags").split(",");
+
                 if (key) {
                     success = true;
 
-                    keys[key] = [];
+                    keys[key] = {
+                        users: [],
+                        flags: [...flags]
+                    };
                     this.saveDb();
                 }
 
@@ -63,7 +70,7 @@ export class MRServer {
             method: "GET",
 
             async handler(req, res, data) {
-                const keys = this.db.admins;
+                const keys = this.db.keys;
                 let success = false;
 
                 const key = data.get("key")
@@ -99,7 +106,7 @@ export class MRServer {
 
             async handler() {
                 return ({
-                    bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.bots.includes(u.id) || u.flags.includes("bot"))
+                    bots: [...this.USERS.values()].map(u => u.data).filter(u => this.db.keys.find(k => k.users.includes(u.id)) || u.flags.includes("bot"))
                 });
             }
         },
@@ -446,7 +453,7 @@ export class MRServer {
 
         /*** Database setup ***/
         if (!fs.existsSync(this.params.db) || !fs.statSync(this.params.db).isFile()) {
-            fs.writeFileSync(this.params.db, JSON.stringify({ admins: {}, banned: [], shadowbanned: [], bots: [], ipwhitelist: [], ipblacklist: [], loginkeys: {}, channelPassword: {} }));
+            fs.writeFileSync(this.params.db, JSON.stringify({ keys: {}, banned: [], shadowbanned: [], ipwhitelist: [], ipblacklist: [], loginkeys: {}, channelPassword: {} }));
         }
 
         /*** Initialize props ***/
@@ -543,7 +550,7 @@ export class MRServer {
                 msgroom_user.user = auth.user;
             }
 
-            let { admins, banned, shadowbanned, bots, ipwhitelist, ipblacklist, loginkeys, channelPassword } = this.db;
+            let { keys, banned, shadowbanned, ipwhitelist, ipblacklist, loginkeys, channelPassword } = this.db;
 
             if (Object.keys(channelPassword).includes(channel)) {
                 const [chName, chPassword] = Object.entries(channelPassword).find(e => e[0] === channel);
@@ -581,19 +588,20 @@ export class MRServer {
             }
 
             if (auth.staff) {
-                if (admins.hasOwnProperty(auth.staff)) {
-                    admins[auth.staff].push(msgroom_user.id);
+                if (keys.hasOwnProperty(auth.staff)) {
+                    keys[auth.staff].users.push(msgroom_user.id);
                     this.saveDb();
                 }
             }
 
-            if (Object.values(admins).some(v => v.includes(msgroom_user.id))) {
-                msgroom_user.flags.push('staff');
+            // Flag registering
+            const flags = new Set(msgroom_user.flags);
+            for (const key of Object.values(keys)) {
+                if (!key.users.includes(msgroom_user.id)) continue;
+                flags.add(...key.flags);
             }
+            msgroom_user.flags = [...flags];
 
-            if (Object.values(bots).some(v => v.includes(msgroom_user.id)) || auth.bot) {
-                msgroom_user.flags.push('bot');
-            }
 
             if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> <code>" + msgroom_user.id + "</code>");
@@ -685,73 +693,34 @@ export class MRServer {
 
             socket.on("admin-action", async ({ args }) => {
                 let log = "-------------------\nAdmin Action";
-                let { admins, banned } = this.db;
-                let authed = Object.values(admins).some(a => a.includes(msgroom_user.id));
+                let { keys, banned } = this.db;
+                let isStaff = Object.values(keys).some(a => (a.users.includes(msgroom_user.id) && a.flags.includes("staff")));
+                let authed = Object.values(keys).some(a => (a.users.includes(msgroom_user.id)));
 
-                if (!authed && args[1] !== "auth") {
-                    socket.emit("sys-message", {
-                        type: "error",
-                        message: 'Authorization check failed.'
-                    });
-                    return;
-                };
-
-                log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + authed.toString();
+                log += "\nArguments: " + JSON.stringify(args.slice(1)) + "\nAdmin: " + isStaff.toString();
 
                 if (args[0] === "a") {
-                    if (args[1] === "help") {
-                        {
-                            if (authed) {
-                                socket.emit("sys-message", {
-                                    type: "info",
-                                    message: [
-                                        "Admin commands list",
-                                        "", "",
-                                        "&lt;item&gt; denotes required, [item] for optional.<br><br>",
-                                        "/a help: this thing",
-                                        "/a disauth: disauthenticate yourself from staff members",
-                                        "/a status [id]: Status of user id, otherwise shows your own",
-                                        "/a ban &lt;id&gt;: ban a user",
-                                        "/a unban &lt;id&gt;: unban a user",
-                                        "/a shadowban &lt;id&gt;: shadowban a user",
-                                        "/a shadowunban &lt;id&gt;: shadowunban a user",
-                                        "/a whitelist &lt;id&gt;: whitelist a user from the IP check",
-                                        "/a disconnect &lt;id&gt;: disconnect a user",
-                                        "--- MRCS-only commands ---",
-                                        "/a blacklist &lt;id&gt;: blacklist a user from the IP check",
-                                        "/a addloginkey &lt;key&gt;: create a loginkey (requires the --require-loginkeys argument on server launch)",
-                                        "/a delloginkey &lt;key&gt;: delete a loginkey",
-                                        "",
-                                        "IDs can be obtained from /list."
-                                    ].join("<br />")
-                                });
-                            }
-                        }
-                    } else if (args[1] === "auth") {
-                        if (authed) {
-                            socket.emit("sys-message", {
-                                type: "info",
-                                message: 'You are already authenticated.'
-                            });
-                            return;
-                        }
-
+                    if (args[1] === "auth") {
                         const key = args[2];
-                        const keySet = Object.entries(admins).find(k => k[0] === key);
 
-                        if (keySet) {
-                            admins[keySet[0]].push(msgroom_user.id);
+                        if (Object.keys(keys).some(k => k === key)) {
+                            const keyConfig = Object.entries(keys).find(([k, v]) => k === key)?.[1];
+
+                            keyConfig.users.push(msgroom_user.id);
                             this.saveDb();
 
-                            this.io.emit("user-update", {
-                                type: "tag-add",
-                                tag: "staff",
-                                user: msgroom_user.session_id
-                            });
+                            const addedFlags = keyConfig.flags.filter(f => !msgroom_user.flags.includes(f));
+                            for (const flag of addedFlags) {
+                                this.io.emit("user-update", {
+                                    type: "tag-add",
+                                    tag: flag,
+                                    user: msgroom_user.session_id
+                                });
+                            }
 
                             socket.emit("sys-message", {
                                 type: "info",
-                                message: 'You are now logged in as a staff member.'
+                                message: 'You are now logged in.'
                             });
                         } else {
                             socket.emit("sys-message", {
@@ -759,32 +728,76 @@ export class MRServer {
                                 message: 'Authorization failed.'
                             });
                         }
-                    } else if (args[1] === "disauth") {
+
+                        return;
+                    }
+
+                    if (args[1] === "disauth") {
                         if (!authed) {
                             return;
                         }
 
                         // Filter every keys with the user id
-                        const keys = Object.entries(admins).filter(k => k[1].includes(msgroom_user.id));
+                        const authedKeys = Object.entries(keys).filter(k => k[1].users.includes(msgroom_user.id));
 
                         // Remove the user id from every key
-                        keys.forEach(k => {
-                            admins[k[0]] = k[1].filter(id => id !== msgroom_user.id);
+                        authedKeys.forEach(([key, value]) => {
+                            keys[key].users = value.users.filter(id => id !== msgroom_user.id);
                             this.saveDb();
                         });
 
                         // Send a tag-remove event
-                        this.io.emit("user-update", {
-                            type: "tag-remove",
-                            tag: "staff",
-                            user: msgroom_user.session_id
-                        });
+                        const tagSet = new Set(authedKeys.flatMap(([k, v]) => v.flags));
+                        for (const tag of tagSet) {
+                            this.io.emit("user-update", {
+                                type: "tag-remove",
+                                tag,
+                                user: msgroom_user.session_id
+                            });
+                        }
 
                         // Send a sys-message
                         socket.emit("sys-message", {
                             type: "info",
                             message: 'You are now disauthenticated.'
-                        })
+                        });
+
+                        return;
+                    }
+
+                    // Auth barrier
+                    if (!isStaff) {
+                        socket.emit("sys-message", {
+                            type: "error",
+                            message: 'Authorization check failed.'
+                        });
+                        return;
+                    };
+
+                    if (args[1] === "help") {
+                        socket.emit("sys-message", {
+                            type: "info",
+                            message: [
+                                "Admin commands list",
+                                "", "",
+                                "&lt;item&gt; denotes required, [item] for optional.<br><br>",
+                                "/a help: this thing",
+                                "/a disauth: disauthenticate yourself from staff members",
+                                "/a status [id]: Status of user id, otherwise shows your own",
+                                "/a ban &lt;id&gt;: ban a user",
+                                "/a unban &lt;id&gt;: unban a user",
+                                "/a shadowban &lt;id&gt;: shadowban a user",
+                                "/a shadowunban &lt;id&gt;: shadowunban a user",
+                                "/a whitelist &lt;id&gt;: whitelist a user from the IP check",
+                                "/a disconnect &lt;id&gt;: disconnect a user",
+                                "--- MRCS-only commands ---",
+                                "/a blacklist &lt;id&gt;: blacklist a user from the IP check",
+                                "/a addloginkey &lt;key&gt;: create a loginkey (requires the --require-loginkeys argument on server launch)",
+                                "/a delloginkey &lt;key&gt;: delete a loginkey",
+                                "",
+                                "IDs can be obtained from /list."
+                            ].join("<br />")
+                        });
                     } else if (args[1] === "status") {
                         let targetUser = { data: msgroom_user, socket: socket, loginkey: auth.loginkey };
 
@@ -1137,7 +1150,7 @@ export class MRServer {
             });
 
             socket.on("switch-channel", (data) => {
-                if(!this.params.enableChannels) return;
+                if (!this.params.enableChannels) return;
                 let targetUsers = this.getUserListInChannel(channel);
                 Object.keys(targetUsers).forEach(key => {
                     targetUsers[key].socket.emit("user-leave", {
