@@ -602,6 +602,9 @@ export class MRServer {
             }
             msgroom_user.flags = [...flags];
 
+            if(auth.bot && !msgroom_user.flags.includes("bot")) {
+                msgroom_user.flags.push("bot");
+            }
 
             if (Object.values(banned).some(v => v.includes(msgroom_user.id))) {
                 socket.emit("auth-error", "<span class='bold-noaa'>Something went wrong: User banned.</span> <code>" + msgroom_user.id + "</code>");
