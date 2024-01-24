@@ -159,7 +159,7 @@ const COMMANDS = [
                 content: [
                     "**MRCS server info**",
                     "",
-                    "Version: **" + (mrcsServerInfo.version.toString() || "unknown") + "**",
+                    "Version: **" + (mrcsServerInfo.version.toString() || "unknown") + " (Beta: " + (mrcsServerInfo.beta.toString() || "unknown") + ")**",
                     "Message Rate Limit: **" + (mrcsServerInfo.messageRatelimit.toString() || "unknown") + "**",
                     "User Limit: **" + (mrcsServerInfo.userLimit.toString() || "unknown") + "**",
                     "AutoMod: **" + (mrcsServerInfo.automod.toString() || "unknown") + "**",
