@@ -122,7 +122,7 @@
     </script>
     <style id="theme"></style>
     <script type="module">
-        import { changeUsername } from './main.js';
+        import { changeUsername, switchChannel, sendServerInfo } from './main.js';
         window.addEventListener('message', (e) => {
             if (typeof e.data !== "object") {
                 console.error("Got data, but is not an object.");
@@ -150,6 +150,16 @@
                 } else {
                     console.error("Got data, but didn't get username.");
                 }
+            } else if(e.data.op === "switch-channel") {
+                if(e.data.args.channel) {
+                    switchChannel(e.data.args.channel);
+                } else {
+                    console.error("Got data, but didn't get channel.");
+                }
+            } else if(e.data.op === "server-info") {
+                sendServerInfo();
+            } else {
+                console.warn("Got a message but the given operation wasn't correct.");
             }
         });
     </script>

@@ -812,6 +812,14 @@ mobTabBtns[1].addEventListener("click", () => {
     }
 });
 
+export function switchChannel(channel) {
+    window.location.hash = channel;
+}
+
+export function sendServerInfo() {
+    COMMANDS.find(c => c.name === "serverinfo").exec({ socket });
+}
+
 window.addEventListener("beforeunload", () => {
     socket.disconnect();
 });
