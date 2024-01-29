@@ -670,8 +670,8 @@ export class MRServer {
                 if (Object.values(shadowbanned).some(v => v.includes(msgroom_user.id))) return;
                 if (messagesPerSecond < this.params.ratelimit) {
                     if (
-                        username.length > 1 ||
-                        username.length < 18 ||
+                        username.length >= 1 ||
+                        username.length <= 18 ||
                         username !== "System"
                     ) {
                         messagesPerSecond++;
