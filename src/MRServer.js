@@ -47,7 +47,7 @@ export class MRServer {
                 let success = false;
 
                 const key = data.get("key");
-                const flags = data.get("flags").split(",");
+                const flags = data.get("flags")?.split(",") || [];
 
                 if (key) {
                     success = true;
