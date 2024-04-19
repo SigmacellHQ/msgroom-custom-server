@@ -7,7 +7,7 @@ Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/
 ## How to use
 ```sh
 # Step 1: Clone the repository
-git clone https://github.com/nolanwhy/msgroom-custom-server.git
+git clone https://github.com/SigmacellHQ/msgroom-custom-server.git
 
 # Step 2: Go to the folder
 cd msgroom-custom-server
