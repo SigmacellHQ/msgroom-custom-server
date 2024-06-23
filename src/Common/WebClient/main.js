@@ -1,8 +1,9 @@
-import { Router } from "express";
+import { Router, static as staticRoute } from "express";
 
 const router = Router();
 
-router.get("/*", (req, res) => {
+router.use(staticRoute("Common/WebClient/public"));
+router.get("/shrek", (req, res) => {
     res.send(`
 <pre>⢀⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠸⡇⠀⠿⡀⠀⠀⠀⣀⡴⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
