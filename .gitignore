@@ -5,5 +5,9 @@ package-lock.json
 # Security
 db.json
 .env
+start.sh
 
 gitignore
+
+# Temporary
+src/_MRServer.js

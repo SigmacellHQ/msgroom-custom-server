@@ -1,6 +1,10 @@
-# MsgRoom Custom Server
+# MsgRoom Custom Server (VERSION 2 BETA)
 
-A custom Windows 96 MsgRoom Server
+WARNING! This is the complete rewrite of MRCS, called MRCSv2.<br>
+For production, use the latest MRCSv1 release and wait for the first release of MRCSv2.<br><br>
+This README.md file contents after these messages will probably be outdated and will be replaced soon.<br>
+
+A custom Windows 96 MsgRoom Server.<br>
 
 Made by [nolanwhy](https://github.com/nolanwhy) and [Kelbaz](https://github.com/kelbazz). Feel free to make pull requests!
 
