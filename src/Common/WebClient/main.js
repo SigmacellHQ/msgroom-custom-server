@@ -2,7 +2,7 @@ import { Router, static as staticRoute } from "express";
 
 const router = Router();
 
-router.use(staticRoute("Common/WebClient/public"));
+router.use(staticRoute("./Common/WebClient/public"));
 router.get("/shrek", (req, res) => {
     res.send(`
 <pre>⢀⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
