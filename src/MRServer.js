@@ -635,7 +635,7 @@ export class MRServer {
                 socket.emit("auth-complete", msgroom_user.id, msgroom_user.session_id);
                 socket.emit("message", {
                     type: 'text',
-                    content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.\n[GitHub Repository 🡕](https://github.com/nolanwhy/msgroom-custom-server)\nMessage from 4/14/24: We made a big mistake by using node:http for MRCS. We will rewrite absolutely EVERYTHING.\nIt will be the exact same but inside, not at all.\nGet ready for v2!\n-nolanwhy & Kelbaz',
+                    content: 'Hi! This custom server was made by nolanwhy and Kelbaz. Please don\'t remove this credit.\n[GitHub Repository 🡕](https://github.com/nolanwhy/msgroom-custom-server)\nMessage from 4/14/24: We made a big mistake by using node:http for MRCS. We will rewrite absolutely EVERYTHING.\nIt will be the exact same but inside, not at all.\nGet ready for v2!\n-nolanwhy & Kelbaz\nMessagr from 6/24/24: We are currently rewriting everything on a new branch, when done, it will get pushed into the main branch.\n[MRCSv2 (develop branch) 🡕](https://github.com/SigmacellHQ/msgroom-custom-server/tree/develop)',
                     user: 'nolanwhy & Kelbaz',
                     color: 'rgb(0, 0, 128)',
                     id: '',
