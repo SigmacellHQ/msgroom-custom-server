@@ -1,4 +1,4 @@
-import { sleep, fixXSS, contextMenu, urlparams } from "./js/utils.js";
+import { sleep, fixXSS, contextMenu, urlparams, textToMD } from "./js/utils.js";
 
 // Hash checks
 if (location.hash === "") {
@@ -25,7 +25,7 @@ const COMMANDS = [
                 ""
             ];
             COMMANDS.forEach(cmd => {
-                if(cmd.name !== "a") content.push("/" + cmd.name + " - " + cmd.description);
+                if (cmd.name !== "a") content.push("/" + cmd.name + " - " + cmd.description);
             });
             createMessage({
                 content: content.join("\n"),
@@ -176,8 +176,8 @@ const COMMANDS = [
         name: "c",
         description: "Changes the channel",
         exec: ({ args }) => {
-            if(mrcsServerInfo.channels) {
-                if(args[1]) {
+            if (mrcsServerInfo.channels) {
+                if (args[1]) {
                     createNotification({
                         title: "Changing channels",
                         description: "Redirecting to \"#" + args[1] + "\""
@@ -189,7 +189,7 @@ const COMMANDS = [
                 } else {
                     createMessage({
                         classes: ["info", "system"],
-                        content: `You are on the channel **${ window.location.hash || "#main" }**.`
+                        content: `You are on the channel **${window.location.hash || "#main"}**.`
                     });
                 }
             } else {
@@ -202,7 +202,8 @@ const COMMANDS = [
     }
 ];
 // Config
-const API_URL = `${(location.protocol === "https:" ? "https://" : "http://")}${window.location.hostname}:${window.location.port}`;
+const protocol = (location.protocol === "https:" ? "https://" : "http://");
+const API_URL = `${protocol}${window.location.hostname}:${window.location.port}`;
 let members = [];
 /**
  * Sends a text message.
@@ -280,39 +281,8 @@ function createMessage(params) {
 function reloadMemberList() {
     memberList.innerHTML = `<div class="member" ${user.color ? `style="color: ${user.color};"` : ""}>${user.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(user.user)}</div>`
     members.forEach(member => {
-        if(member.session_id !== user.session_id) memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
+        if (member.session_id !== user.session_id) memberList.innerHTML += `<div class="member" ${member.color ? `style="color: ${member.color};"` : ""}>${member.flags.map(flag => `<span class="tag ${flag}">${flag}</span>`).join("")}${fixXSS(member.user)}</div>`
     });
-}
-
-/**
- * Converts text to markdown.
- * @param {String} text The text to convert.
- */
-function textToMD(text, custom = {}, safety = true) {
-    let newText = text;
-    if(safety) newText = newText.replaceAll(/"/g, "&quot;");
-    newText = newText
-        // Bold
-        .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replaceAll(/__(.*?)__/g, "<strong>$1</strong>")
-
-        // Italic
-        .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
-        .replaceAll(/_(.*?)_/g, "<i>$1</i>")
-
-        // Strike
-        .replaceAll(/~~(.*?)~~/g, "<s>$1</s>")
-
-        // Links
-        .replaceAll(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a style="cursor: pointer;" href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-
-        // New Line
-        .replaceAll("\n", "<br />")
-        .replaceAll("\r", "<br />")
-    Object.keys(custom).forEach(key => {
-        newText = newText.replaceAll(key, custom[key]);
-    });
-    return newText
 }
 
 var errored = false;
@@ -341,7 +311,7 @@ socket.on("connect", async () => {
     }
 
     document.querySelector(".nickname").innerText = username;
-    console.log("Username is", username);
+    console.log("Username is", username); 7
     socket.on("online", (memberList) => {
         members = memberList;
         reloadMemberList();
@@ -356,7 +326,7 @@ socket.on("connect", async () => {
     };
 
     // Check if channel is locked
-    const { isLocked } = await fetch(`/api/channels/islocked?channel=${channel}`).then(r => r.json());
+    const isLocked = await fetch(`/api/channels/islocked?channel=${channel}`).then(r => r.json()).locked;
     if (isLocked) {
         const password = prompt("This channel is locked. Please enter the password.");
         if (password) {
@@ -372,12 +342,12 @@ socket.on("connect", async () => {
     });
 
     socket.once("mrcs-error", async (err) => {
-        if(err === "loginkey") {
+        if (err === "loginkey") {
             loginkey = prompt("This MRCS instance requires you to put a loginkey. Please put one to proceed.\n\nDon't have one? Ask the owner of this MRCS instance to get one.");
             localStorage.setItem("loginkey", loginkey);
-            if(loginkey) location.reload();
-        } else if(err === "toomuchusers") {
-            if(confirm("This MRCS instance is telling you that you have too much alt accounts connected. Please leave or wait some time.\n\nClick OK to disconnect every other alt while connecting."))
+            if (loginkey) location.reload();
+        } else if (err === "toomuchusers") {
+            if (confirm("This MRCS instance is telling you that you have too much alt accounts connected. Please leave or wait some time.\n\nClick OK to disconnect every other alt while connecting."))
                 window.location = "?disconnectAll";
         }
     });
@@ -397,7 +367,7 @@ socket.on("connect", async () => {
             if (!user) {
                 user = data;
             }
-            members.push({ user: data.user, color: data.color, flags: data.flags, id: data.id, session_id: data.session_id });
+            members.push(data);
             reloadMemberList();
             createMessage({ content: `-> User <span class="bold-noaa" style="color: ${data.color};">${fixXSS(data.user)}</span> joined the chat :D`, classes: ["system", "info"], id: data.id, session_id: data.session_id });
         });
@@ -426,7 +396,7 @@ socket.on("connect", async () => {
                 case "tag-add": {
                     if (!data.tag) break;
 
-                    if(data.user === user.session_id) {
+                    if (data.user === user.session_id) {
                         user.flags.push(data.tag);
                     }
 
@@ -444,7 +414,7 @@ socket.on("connect", async () => {
                 case "tag-remove": {
                     if (!data.tag) break;
 
-                    if(data.user === user.session_id) {
+                    if (data.user === user.session_id) {
                         user.flags = user.flags.filter(flag => flag !== data.tag);
                     }
 
@@ -483,9 +453,9 @@ socket.on("connect", async () => {
 
         socket.on("blocked", (data) => {
             let blocked = JSON.parse(localStorage.getItem("blocked") ?? "[]");
-            if(!blocked.includes(data.user)) {
+            if (!blocked.includes(data.user)) {
                 let member = members.find(member => member.id === data.user);
-                if(member) {
+                if (member) {
                     createNotification({
                         title: "Someone blocked you",
                         description: member.user + " has blocked you. ID: " + data.user
@@ -501,9 +471,9 @@ socket.on("connect", async () => {
 
         socket.on("unblocked", (data) => {
             let blocked = JSON.parse(localStorage.getItem("blocked") ?? "[]");
-            if(!blocked.includes(data.user)) {
+            if (!blocked.includes(data.user)) {
                 let member = members.find(member => member.id === data.user);
-                if(member) {
+                if (member) {
                     createNotification({
                         title: "Someone unblocked you",
                         description: member.user + " has unblocked you. ID: " + data.user
@@ -523,7 +493,7 @@ function handleSend() {
         if (messageBox.value.startsWith("/")) {
             const args = messageBox.value.slice(1).split(" ");
             const cmd = COMMANDS.find(c => c.name === args[0]);
-            if(cmd) {
+            if (cmd) {
                 cmd.exec({ socket, args });
             } else {
                 createMessage({
@@ -633,7 +603,7 @@ const menuItems = [
         label: "Reset Blocked",
         type: "item",
         action: () => {
-            if(confirm("This will reset your blocked users. Are you sure?")) localStorage.setItem("blocked", "[]");
+            if (confirm("This will reset your blocked users. Are you sure?")) localStorage.setItem("blocked", "[]");
         }
     },
     {
@@ -648,7 +618,7 @@ const menuItems = [
         label: "Delete Login Key",
         type: "item",
         action: () => {
-            if(confirm("Are you sure? You will still be able to re-login using it.")) {
+            if (confirm("Are you sure? You will still be able to re-login using it.")) {
                 localStorage.setItem("loginkey", null);
                 location.reload();
             }
@@ -659,7 +629,7 @@ const menuItems = [
         type: "item",
         action: () => {
             let channel = prompt("What channel do you want to go to?", "main");
-            COMMANDS.find(c => c.name === "c").exec({ args: [ "c", channel ] });
+            COMMANDS.find(c => c.name === "c").exec({ args: ["c", channel] });
         }
     },
     {
@@ -676,7 +646,7 @@ const menuItems = [
         label: "GitHub Repository 🡕",
         type: "item",
         action: () => {
-            window.open("https://github.com/nolanwhy/msgroom-custom-server", "_blank");
+            window.open("https://github.com/SigmacellHQ/msgroom-custom-server", "_blank");
         }
     },
     {
@@ -725,10 +695,10 @@ menuBtn.addEventListener("click", () => {
             itemEl.addEventListener("click", () => {
                 item.action();
 
-                try{
+                try {
                     ctxMenu.remove();
                     ctxMenu = null;
-                } catch {}
+                } catch { }
             });
 
             ctxMenu.appendChild(itemEl);
@@ -748,13 +718,13 @@ function createNotification(givenparams = {}) {
         ...givenparams
     };
 
-    if(params.sound) new Audio(params.sound).play();
+    if (params.sound) new Audio(params.sound).play();
 
-    if(params.timeout) {
+    if (params.timeout) {
         let timeout = setTimeout(() => {
-            try{
+            try {
                 el.remove();
-            } catch {}
+            } catch { }
         }, params.timeout);
     }
 

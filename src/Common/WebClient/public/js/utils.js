@@ -74,4 +74,35 @@ function removeCTXMenu() {
     document.body.removeEventListener("click", removeCTXMenu);
 }
 
+/**
+ * Converts text to markdown.
+ * @param {String} text The text to convert.
+ */
+export function textToMD(text, custom = {}, safety = true) {
+    let newText = text;
+    if (safety) newText = newText.replaceAll(/"/g, "&quot;");
+    newText = newText
+        // Bold
+        .replaceAll(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replaceAll(/__(.*?)__/g, "<strong>$1</strong>")
+
+        // Italic
+        .replaceAll(/\*(.*?)\*/g, "<i>$1</i>")
+        .replaceAll(/_(.*?)_/g, "<i>$1</i>")
+
+        // Strike
+        .replaceAll(/~~(.*?)~~/g, "<s>$1</s>")
+
+        // Links
+        .replaceAll(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a style="cursor: pointer;" href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+
+        // New Line
+        .replaceAll("\n", "<br />")
+        .replaceAll("\r", "<br />")
+    Object.keys(custom).forEach(key => {
+        newText = newText.replaceAll(key, custom[key]);
+    });
+    return newText
+}
+
 export var urlparams = new URLSearchParams(window.location.search);
